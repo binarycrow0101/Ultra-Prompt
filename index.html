@@ -208,6 +208,15 @@ canvas.confetti { position:fixed; left:0; top:0; width:100%; height:100%; pointe
 <audio id="menuAudio" src="assets/sounds/menu_theme.mp3" preload="auto" loop></audio>
 <!-- theme music will be swapped dynamically -->
 
+function stopAllMusic() {
+  [menuAudio, themeAudio, pingAudio].forEach(a => {
+    a.pause();
+    a.currentTime = 0;
+  });
+}
+
+
+
 <script>
 /* -------------------------
   Full theme data (converted from your Python)
@@ -365,6 +374,7 @@ menuAudio.pause();
 if(themeMusic[currentTheme]){
 themeAudio.src = themeMusic[currentTheme];
 themeAudio.currentTime = 0;
+stopAllMusic();
 themeAudio.play().catch(()=>{ /* browsers may block until user gesture */});
 }
 }catch(e){
@@ -567,8 +577,14 @@ let isMuted = false;
 muteBtn.addEventListener("click", () => {
   isMuted = !isMuted;
   muteBtn.textContent = isMuted ? "🔇" : "🔊";
-  [menuAudio, themeAudio, pingAudio].forEach(a => a.muted = isMuted);
+
+  if (isMuted) {
+    [menuAudio, themeAudio, pingAudio].forEach(a => a.pause());
+  } else {
+    if (themeAudio && !themeAudio.src.includes("menu")) themeAudio.play();
+  }
 });
+
 </script>
 </body>
 </html>
