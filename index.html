@@ -24,6 +24,547 @@
     align-items:start;
   }
 
+  /* Left: illustrated slot */
+  .machine {
+    background: linear-gradient(180deg,#121428 0%, #0f1528 100%);
+    border-radius:20px;
+    padding:18px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 2px 10px rgba(255,255,255,0.02);
+    position:relative;
+    overflow: visible;
+  }
+
+  .header {
+    display:flex;align-items:center;gap:12px;margin-bottom:12px;
+  }
+  .logo {
+    width:78px;height:78px;border-radius:14px;background:linear-gradient(180deg,#3b2a6f,#26204b);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    transform: rotate(-6deg);
+  }
+  .title {font-size:22px; font-weight:700; color:var(--accent);}
+  .subtitle {font-size:12px; color:var(--muted); margin-top:4px;}
+
+  /* slot face */
+  .slot-face {
+    background: linear-gradient(180deg,#0b0f1b,#0f1420);
+    border-radius:14px;
+    padding:18px;
+    display:flex;flex-direction:column;align-items:center;
+    border: 2px solid rgba(255,255,255,0.03);
+  }
+  .reels {
+    width:100%;
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    margin-bottom:16px;
+  }
+  .reel {
+    flex:1;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:10px;
+    padding:22px 8px;
+    min-height:100px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+  }
+  .word {
+    font-size:30px; font-weight:700; text-align:center; letter-spacing:0.6px;
+    transition: transform 120ms ease, color 120ms linear;
+    -webkit-user-select:none; user-select:none;
+  }
+  .controls {
+    display:flex; gap:12px; align-items:center; justify-content:space-between;width:100%;
+  }
+  .left-controls {display:flex; gap:8px; align-items:center;}
+  .theme-btn {
+    background:var(--glass); padding:8px 12px; border-radius:12px; color:var(--muted); border:1px solid rgba(255,255,255,0.03);
+    cursor:pointer; font-weight:600;
+  }
+  .theme-btn.selected { box-shadow: 0 6px 20px rgba(255,210,77,0.08); border-color: rgba(255,210,77,0.14); color:var(--accent); }
+
+  /* Lever */
+  .lever-area { width:160px; display:flex; justify-content:center; align-items:center; height:140px; position:relative; }
+  .lever {
+    width:56px; height:120px; background:linear-gradient(180deg,#592c78,#351a4a); border-radius:12px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    transform-origin: top center;
+    display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px; cursor:pointer;
+    transition: transform 220ms cubic-bezier(.2,.9,.3,1);
+  }
+  .lever.grabbed { transform: rotate(18deg) translateY(6px) scale(0.98); }
+  .lever-knob { width:38px; height:38px; background: radial-gradient(circle at 30% 30%, #ffd24d, #ffb62e); border-radius:50%; box-shadow: 0 6px 18px rgba(0,0,0,0.6);}
+
+  /* Right column (tracker + credits) */
+  .side {
+    background: linear-gradient(180deg,#0b1220,#071029);
+    border-radius:14px; padding:16px; min-height:420px; box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  }
+  .tracker-list { margin-top:12px; display:grid; gap:8px; max-height:520px; overflow:auto; padding-right:8px; }
+  .tracker-item { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; }
+  .small { font-size:13px; color:var(--muted); }
+
+  /* Confetti canvas overlay */
+  canvas.confetti { position:fixed; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:999; }
+
+  /* Footer / instruction */
+  .footer { margin-top:12px; color:var(--muted); font-size:13px; text-align:center; }
+
+  /* Responsive */
+  @media (max-width:1000px){
+    .app{grid-template-columns: 1fr; padding:12px;}
+    .lever-area { width:120px; }
+    .reel .word { font-size:24px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="machine">
+    <div class="header">
+      <div class="logo">UP</div>
+      <div>
+        <div class="title">Ultra Prompt Machine</div>
+        <div class="subtitle">Pull the lever to spin</div>
+      </div>
+    </div>
+
+    <div class="slot-face">
+      <div class="reels" id="reels">
+        <div class="reel"><div class="word" data-index="0">—</div></div>
+        <div class="reel"><div class="word" data-index="1">—</div></div>
+        <div class="reel"><div class="word" data-index="2">—</div></div>
+        <div class="reel"><div class="word" data-index="3">—</div></div>
+      </div>
+
+      <div class="controls">
+        <div class="left-controls" id="themeButtons"></div>
+        <div class="lever-area">
+          <div id="lever" class="lever" role="button" aria-label="Pull lever to spin">
+            <div class="lever-knob"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer small">
+        Tip: pull the lever (or tap it) to start.
+      </div>
+    </div>
+  </div>
+
+  <div class="side">
+    <h2 style="margin:2px 0 6px 0">Tracker</h2>
+    <div class="small">Tracks how many unique words you've landed per theme / category.</div>
+    <div class="tracker-list" id="trackerList"></div>
+
+    <div style="margin-top:12px;">
+      <h3 style="margin:6px 0 6px 0">Credits</h3>
+      <div class="small">Music:
+      Silly Theme: "retro-game-arcade" by moodmode from Pixabay',
+      Superhero Theme: "superhero-theme" by Luis_Humanoide from Pixabay',
+      Mashup Theme: "chiptune-symphony-8bit-game" by MusicInMedia from Pixabay',
+      SciFi Theme: "exploring-the-cosmos" by MonolithAudio from Pixabay',
+      Spooky Theme: "halloween-spooky-music" by Inplusmusic from Pixabay',
+      Fantasy Theme: "wizard-rider" by Sonican',
+      Menu Theme: "game-background" by u_vdwj1c20kz from Pixabay',
+      Sound: "ping" by freesound_community',</div>
+      <div class="small" style="margin-top:8px">Code and prompts by Alex Crowhurst. .</div>
+    </div>
+  </div>
+</div>
+
+<canvas id="confettiCanvas" class="confetti"></canvas>
+
+<!-- Audio elements (do not autoplay) -->
+<audio id="pingAudio" src="assets/sounds/ping.wav" preload="auto"></audio>
+<audio id="menuAudio" src="assets/sounds/menu_theme.mp3" preload="auto" loop></audio>
+<!-- theme music will be swapped dynamically -->
+
+<script>
+/* -------------------------
+   Full theme data (converted from your Python)
+   ------------------------- */
+const themes = {
+  "Fantasy": {
+    "roles": ["Knight","Wizard","Barbarian","Necromancer","Bard","Blacksmith","Jester","Alchemist","Cleric","Ranger","Rogue","Paladin","Druid","Warlock","Sorcerer","Monk"],
+    "subjects": ["Dragons","Elves","Orcs","Goblins","Unicorns","Golems","Giants","Demons"],
+    "actions": ["casting spells","forging weapons","summoning something horrific","fighting","exploring","guarding treasure","courting"],
+    "contexts": ["in a dungeon","in a castle","in a magic forest","in the underworld","in a dragons cave","in the tundra","atop a crumbling tower","on a floating island","in a cursed library","at the kings feast","inside a talking tree","at the edge of the world","within a magical storm","beneath an enchanted waterfall","during a jousting tournament","in a goblin market"]
+  },
+  "Sci-Fi": {
+    "roles": ["Captain","Cosmic","Astronaut","Engineer","Virtual","Alien","Space Pilot","Android","Time Traveler","Quantum Hacker","Galactic Trader","Mech Operator","Starship Commander","Astrobiologist","Exo-Scout","Warp Navigator"],
+    "subjects": ["Xenomorph","Robot","Cyborg","Scientist","Kaiju","Cowboy","Cowgirl","AI Overlord","Mutant Plant","Sentient being","Drone","Space Whale","Plasma Beast","Cosmic Entity","Nanobot"],
+    "actions": ["inventing","teleporting","exploding","phoning home","hacking a terminal","scanning","solving a problem","making first contact","rewriting code","debugging reality","escaping an asteroid","charging a laser","analyzing alien DNA","piloting a mech","dodging meteors","activating a wormhole"],
+    "contexts": ["in a spaceship","in cyberspace","in a secret lab","at a distant planet","in a wormhole","on the moon","in zero gravity","on a space station","inside a black hole","on a space colony","on an asteroid mining rig","in a stasis chamber","near a supernova","on a parallel Earth","inside a dimensional rift","in an alien marketplace"]
+  },
+  "Spooky": {
+    "roles": ["Lord","Baroness","Creepy","Crazy","Murderous","Suffering","Wretched","Stinky","","Upset","Raging","Killer","Cursed","Lost","Hitchhiker","Crusty","Mad"],
+    "subjects": ["Vampires","Werewolves","Zombies","Skeletons","Ghosts","Witches","Jack O'Lantern","Shadow","Spider","Frogs","Ghouls","Clowns","Puppet","Cheese","Potato"],
+    "actions": ["haunting","conjuring","cursing","moaning","playing chess","crowding","smashing pumpkins","excreting ooze","trick or treating","lurking","whispering secrets","haunting dreams","sliding silently across floors","rattling chains","brewing potions","raising zombies","opening cursed books","playing in a skeleton jazz band","floating through walls"],
+    "contexts": ["in a haunted house","at a graveyard","in a swamp","in a dark forest","in a crypt","at a seance","during a tarot card reading","whilst playing poker","at comic con","in a diner","in an abandoned theme park","in an abandoned asylum","during a witching hour ritual","inside a coffin factory","in a room full of broken dolls","in a village of ghosts","inside a haunted school","on a haunted carnival ride","in a meat factory","in a boiler room"]
+  },
+  "Silly": {
+    "roles": ["Grumpy","Depressed","Loved Up","Broken","Ticklish","Excited","Sleepy","Hyper","Confused","Bumbling","Cheerful","Forgetful","Clumsy","Sneezy","Chatty"],
+    "subjects": ["Clowns","Penguins","Monkeys","Bananas","Hamsters","Muppet","Hand Puppet","Rubber Duck","Marshmallow","Toaster","Donut","Sock","Unicorn Plush","Cactus","Dracula"],
+    "actions": ["juggling","wearing tiny torusers","wearing a jacket made of cheese","moonwalking","eating","dancing","arguing","slipping","tripping","balancing on one foot","screaming happily","tickling","singing badly","wearing silly hats","blowing bubbles","chasing a squirrel","making funny faces"],
+    "contexts": ["at a circus","in a rollercoaster","in a supermarket","at a birthday party","at a theme park","in a ball pit","on a trampoline","in a pillow fight","in a bouncy castle","in a snowball fight","at a comedy show","in a messy kitchen","on a playground","in a giant teacup ride","inside a cardboard fort"]
+  },
+  "Superhero": {
+    "roles": ["Captain","The Amazing","The Invisible","The Space","Wonder","The Dark","Star","Ultra","Aero","Master","Alpha","Radioactive","The Lone","Baron","Battle","The Beef","The Big","The Boom","The Crusher","The Dazzler","Teh Frost","Doctor","The Fantastic","The Frightful","The Giant","Ghost","The Hellfire"],
+    "subjects": ["Lord","Raccoon","Witch","Pig","Weasel","Gibbon","Hawk","Zero","Cyborg","Hamster","Mutant","Banshee","Wolf","Queen","Boom","Spider","Soldier","Cyclops","Star","Defender","Dinosaur","Cobra","Storm","Frog","Chicken"],
+    "actions": ["shopping","arguing","reading","working","flying","climbing a wall","eating","dining","rescuing a cat","chilling","fighting","saving the day","rescuing a bus","rescuing a civilian","rescuing civilians","investigating a mystery","helping a neighbor","doing chores"],
+    "contexts": ["in a coffee shop","in a library","at a wedding","at a funeral","in a classroom","in a car park","at a zoo","during a natural disaster","during an alien invasion","whilst being attacked by a super villain","from an impending disaster","at a press conference","during a bank robbery","in a collapsing skyscraper","on top of a speeding train","on live television"]
+  },
+  "Mashup": {
+    "roles": ["Frog","Elephant","Boar","Raven","Giraffe","Tapir","Weasel","Otter","Beaver","Buffalo","Cow","Spider","Rabbit","Dog","Dinosaur","Octopus","","Penguin","Crab","Cat","Bear","Lion","Badgers","Xenomorph","Android","Shark","Unicorn","Shrimp","Raccoon","Turtle","Rat","Pony","Tiger","Ant","Bat","Koala","Sloth","Dragon","Chinchilla","Skeleton","Pigeon","Lobster","Walrus","Armadillo","Chicken","Goblin","Dog","Mermaid","Centaur","Werewolf","Vampire Bat","Gnome","Fairy","Alien Blob","Robot Dog","Mutant Hamster","Zombie Cat","Cyborg Chicken","Mini Dragon","Space Slug","Tentacle Monster","Flying Fish","Talking Donkey","Living Rock","A Painting of a","Haunted Doll","Giant Rat","Fire Sprite","Ice Golem","Shadow Beast","Moon Rabbit","Pumpkin Monster","Cosmic Owl","Time Traveler","Ghost Parrot","Invisible Cat","Frost Troll","Sand Worm","Giant Spider","Banana Knight","Chocolate Ogre","Cheese Dragon","Sock Monster","Killer Whale","Fox","Neon Tiger","Gummy Bear","Jellyfish","Vortex Frog","Crazy Chicken"],
+    "subjects": ["","Knight","Wizard","Healer","Archer","Bard","Thief","Necromancer","Paladin","Barbarian","Alchemist","Engineer","Inventor","Pilot","Captain","Admiral","Navigator","Spy","Assassin","Scout","Soldier","General","Guard","Jester","King","Queen","Prince","Princess","Peasant","Farmer","Blacksmith","Miner","Merchant","Scholar","Librarian","Teacher","Student","Priest","Monk","Oracle","Prophet","Shaman","Druid","Hunter","Fisherman","Cook","Butcher","Baker","Brewer","Innkeeper","Explorer","Cartographer","Sailor","Pirate","Smuggler","Outlaw","Sheriff","Deputy","Detective","Investigator","Doctor","Surgeon","Nurse","Witch Doctor","Mechanic","Taxi Driver","Racer","Athlete","Gladiator","Champion","Wrestler","Boxer","Samurai","Ronin","Ninja","Sensei","Mentor","Apprentice","Magician","Illusionist","Fortune Teller","Trickster","Hero","Villain","Antihero","Rebel","Revolutionary","Diplomat","Ambassador","Politician","Judge","Lawyer","Banker","Thug","Crime Boss","Cult Leader","Prophet of Doom","Herald","Delivery","Courier","Wanderer","Hermit","Nomad","Survivor","Scientist","Astronaut","Alien","Robot","Hacker","AI Core","Space Marine","Influencer","Starship Captain","Time Traveler","Historian","Archivist","Storyteller","Painter","Musician","Sculptor","Poet","Philosopher","Dreamer","Visionary","Madman","Trickster God","Demi-God","Grecian God","Spirit Guardian","Elemental","Shape-shifter","Mustachio","CEO","Zombie","Vampire","Muppet","Sock Puppet","Kaiju","Transforming","Hippy","Crusty"],
+    "actions": ["dancing","sleeping","baking cupcakes","juggling","painting","singing","fighting","building a Lego set","haunting","surfing","moonwalking","shopping","arguing","reading","working","driving a golf cart","climbing","eating cheese","solving a mystery","being disgusted","poisoned","slaying","pumping iron","playing the bassoon","having a tea party","competing in a staring match","raising money","presenting their ideas","speed dating","performing a musical","wearing tiny trousers","sharing a dessert","dying","laughing","serving drinks","cutting hair","playing football","playing soccer","bringing the ruckus","comparing hats","playing pinball","checking the goods","fishing","wearing a jacket made of cheese","carving wooden spoons","making a secret deal","eating pizza","riding a T-Rex","participating in a hotdog eating contest","casting spells","summoning a storm","building a time machine","hacking a computer","climbing a volcano","riding a giant snail","teleporting","sneaking past guards","playing hide and seek","chasing shadows","taming a dragon","stealing treasure","creating a potion","swinging on vines","jumping through portals","painting graffiti","singing opera","writing a novel","escaping a maze","inventing gadgets","dancing on rooftops","riding a comet","dueling with swords","feeding unicorns","swimming with sharks","riding a mechanical horse","playing pranks","solving riddles","baking a magical cake","testing a jetpack","training minions","fighting off zombies","wrangling ghosts","building a cheese fortress","stealing a crown","casting shadow puppets","racing kangaroos","wrestling giant frogs","conducting an orchestra","driving a UFO"],
+    "contexts": ["in the Congo","at a TED convention","in a castle","in a spaceship","on the moon","in a haunted house","in a circus","in a swamp","in a library","in a volcano","in a coffee shop","at a wedding","at a funeral","in a classroom","on a pirate ship","on stage","in a candy store","in a barber shop","at a fashion show","in a pub","at Disney World","in the big city","on set of a movie shoot","at the gym","in hospital","at a saloon","in a cheese factory","off a cliffs edge","in a field battle","in a thrift store","during an earthquake","on a zoom call","during armageddon","in a sewer","on the subway","in hell","at the laundromat","in the middle of traffic","during karaoke night","at a silent disco","in a gladiator arena","at a bus stop","on a cloud","inside a volcano","underwater in Atlantis","on a flying carpet","in a haunted forest","inside a giant pumpkin","at a zombie apocalypse","during a snowstorm","on a rollercoaster","in a neon city","inside a video game","on a space station","in a cave of crystals","on a pirate island","during a magic duel","in a labyrinth","on a tropical island","in a candy factory","at a wizard school","in a secret laboratory","on a comet","in a junkyard","on a train to nowhere","inside a giant robot","on top of a giant cake","in a miniature village","during a monster invasion","inside a snow globe","on the set of a reality show","in a haunted carnival","inside a magical mirror","at a superhero battle","in a library of forbidden books","under the city streets","on a mountaintop temple","inside a giant clock","in a dimension of upside-down physics","on a floating island","in a circus of illusions","at the edge of time"]
+  }
+};
+
+/* ------------- settings & state ------------- */
+const themeMusic = {
+  "Fantasy":"assets/sounds/fantasy_spin.mp3",
+  "Sci-Fi":"assets/sounds/scifi_spin.mp3",
+  "Spooky":"assets/sounds/spooky_spin.mp3",
+  "Silly":"assets/sounds/silly_spin.mp3",
+  "Superhero":"assets/sounds/superhero_spin.mp3",
+  "Mashup":"assets/sounds/Mashup_spin.mp3"
+};
+const menuMusicSrc = "assets/sounds/menu_theme.mp3";
+const pingSrc = "assets/sounds/ping.wav";
+
+let currentTheme = "Mashup";
+let spinning = false;
+let spinStart = 0;
+const stopTimes = [0.9, 1.8, 2.6, 3.4]; // seconds
+let reelWords = ["","","",""];
+let resultTime = null;
+let confettiParticles = [];
+const confettiCanvas = document.getElementById("confettiCanvas");
+const ctx = confettiCanvas.getContext("2d");
+let confettiRaf = null;
+
+const pingAudio = document.getElementById("pingAudio");
+const menuAudio = document.getElementById("menuAudio");
+let themeAudio = new Audio(); themeAudio.loop = true;
+
+/* Tracker stored in localStorage: { theme: { roles: Set, subjects:Set, ... } } */
+const TRACKER_KEY = "upg_tracker_v1";
+let tracker = loadTracker();
+
+/* -------------- utilities --------------- */
+function resizeCanvas(){
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+function rand(min,max){ return Math.random()*(max-min)+min; }
+function choose(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* ------------- build UI -------------- */
+const themeButtonsArea = document.getElementById("themeButtons");
+function buildThemeButtons(){
+  themeButtonsArea.innerHTML = "";
+  Object.keys(themes).forEach(t=>{
+    const btn = document.createElement("button");
+    btn.className = "theme-btn" + (t===currentTheme ? " selected":"");
+    btn.textContent = t;
+    btn.onclick = ()=> { selectTheme(t); };
+    themeButtonsArea.appendChild(btn);
+  });
+}
+buildThemeButtons();
+
+function selectTheme(t){
+  currentTheme = t;
+  document.querySelectorAll(".theme-btn").forEach(b=> b.classList.toggle("selected", b.textContent===t));
+  // stop any theme audio, start menu audio again
+  themeAudio.pause();
+  menuAudio.pause();
+  // try to play menu after user action
+  try{ menuAudio.play(); }catch(e){}
+  updateTrackerUI();
+}
+
+/* show tracker in side */
+function updateTrackerUI(){
+  const list = document.getElementById("trackerList");
+  list.innerHTML = "";
+  Object.keys(themes).forEach(theme=>{
+    const node = document.createElement("div");
+    node.className = "tracker-item";
+    const left = document.createElement("div");
+    left.innerHTML = `<strong>${theme}</strong><div class="small">${Object.keys(themes[theme]).map(k=> k).join(" · ")}</div>`;
+    const right = document.createElement("div");
+    right.style.textAlign = "right";
+    Object.keys(themes[theme]).forEach(k=>{
+      const seen = tracker[theme] && tracker[theme][k] ? tracker[theme][k].size : 0;
+      const total = themes[theme][k].length;
+      const p = document.createElement("div");
+      p.className = "small";
+      p.textContent = `${k}: ${seen}/${total}`;
+      right.appendChild(p);
+    });
+    node.appendChild(left); node.appendChild(right);
+    list.appendChild(node);
+  });
+}
+updateTrackerUI();
+
+/* ------------- spinning + display -------------- */
+const wordEls = Array.from(document.querySelectorAll(".word"));
+
+function renderReels(){
+  // update DOM words
+  wordEls.forEach((el, i)=>{
+    el.textContent = reelWords[i] || "—";
+  });
+}
+
+/* spin engine */
+function startSpin(){
+  if(spinning) return;
+  spinning = true;
+  spinStart = performance.now()/1000;
+  resultTime = null;
+  // ensure menu audio stops and theme audio starts (user gesture required)
+  try{
+    menuAudio.pause();
+    if(themeMusic[currentTheme]){
+      themeAudio.src = themeMusic[currentTheme];
+      themeAudio.currentTime = 0;
+      themeAudio.play().catch(()=>{ /* browsers may block until user gesture */});
+    }
+  }catch(e){
+    console.warn("Audio play blocked", e);
+  }
+  // begin animation loop
+  spinLoop();
+}
+
+function spinLoop(){
+  if(!spinning) return;
+  const now = performance.now()/1000;
+  const elapsed = now - spinStart;
+
+  // for each reel, while it hasn't reached its stop time, show random candidate
+  for(let i=0;i<4;i++){
+    if(elapsed < stopTimes[i]){
+      // pick candidate
+      const keys = ["roles","subjects","actions","contexts"];
+      const arr = themes[currentTheme][keys[i]] || themes["Mashup"][keys[i]];
+      reelWords[i] = choose(arr);
+    } else {
+      // lock final if not already locked
+      if(resultTime === null){
+        // we'll set resultTime when all finished
+      }
+    }
+  }
+  renderReels();
+
+  // check finished
+  if(elapsed >= stopTimes[stopTimes.length-1]){
+    spinning = false;
+    resultTime = performance.now();
+    // play ping
+    try{ pingAudio.currentTime = 0; pingAudio.play(); }catch(e){}
+    // confetti burst
+    launchConfetti();
+    // register tracker
+    registerTracker();
+  } else {
+    requestAnimationFrame(spinLoop);
+  }
+}
+
+/* lever interaction */
+const lever = document.getElementById("lever");
+let dragging = false, dragStartY = 0;
+lever.addEventListener("pointerdown", (e)=>{
+  dragging = true;
+  dragStartY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+  lever.classList.add("grabbed");
+  // ensure menu audio starts only after user gesture if not playing
+  try{ menuAudio.play().catch(()=>{}); }catch(e){}
+});
+window.addEventListener("pointerup",(e)=>{
+  if(!dragging) return;
+  dragging=false;
+  lever.classList.remove("grabbed");
+  // determine drag distance (simple)
+  const dy = dragStartY - (e.clientY || 0);
+  // If user pulled up sufficiently OR just clicked, spin
+  if(dy > 20 || Math.abs(dy) < 6) startSpin();
+});
+lever.addEventListener("click", (e)=>{
+  // click fallback
+  if(!dragging) startSpin();
+});
+
+/* keyboard / mobile tap support */
+document.addEventListener("keydown", (e)=>{
+  if(e.code === "Space"){ startSpin(); e.preventDefault(); }
+});
+document.addEventListener("touchstart", ()=>{} , {passive:true}); // to enable some mobile gestures
+
+/* ------------- confetti ------------- */
+function launchConfetti(){
+  // produce many particles shooting upward from bottom
+  const count = 120;
+  for(let i=0;i<count;i++){
+    confettiParticles.push({
+      x: rand(50, window.innerWidth-50),
+      y: window.innerHeight + rand(0,20),
+      vx: rand(-6,6),
+      vy: rand(-18,-6),
+      size: Math.round(rand(4,14)),
+      life: Math.round(rand(60,140)),
+      color: `hsl(${Math.floor(rand(0,360))} ${Math.floor(rand(60,100))}% ${Math.floor(rand(40,70))}%)`
+    });
+  }
+  if(!confettiRaf) confettiUpdate();
+}
+function confettiUpdate(){
+  ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+  for(let i=confettiParticles.length-1;i>=0;i--){
+    const p = confettiParticles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.5; // gravity
+    p.life--;
+    // draw
+    ctx.save();
+    ctx.translate(p.x,p.y);
+    ctx.rotate((p.vx+p.vy)/40);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
+    ctx.restore();
+    if(p.life <= 0 || p.y > window.innerHeight + 300){
+      confettiParticles.splice(i,1);
+    }
+  }
+  if(confettiParticles.length>0){
+    confettiRaf = requestAnimationFrame(confettiUpdate);
+  } else {
+    confettiRaf = null;
+    ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+  }
+}
+
+/* ---------- tracker persistence ---------- */
+function defaultTracker(){
+  const out = {};
+  Object.keys(themes).forEach(t=>{
+    out[t] = {};
+    ["roles","subjects","actions","contexts"].forEach(k=>{
+      out[t][k] = new Set();
+    });
+  });
+  return out;
+}
+function loadTracker(){
+  try{
+    const raw = localStorage.getItem(TRACKER_KEY);
+    if(!raw) return defaultTracker();
+    const parsed = JSON.parse(raw);
+    // convert arrays to Sets
+    Object.keys(parsed).forEach(t=>{
+      Object.keys(parsed[t]).forEach(k=>{
+        parsed[t][k] = new Set(parsed[t][k] || []);
+      });
+    });
+    return parsed;
+  }catch(e){ return defaultTracker(); }
+}
+function saveTracker(){
+  const serial = {};
+  Object.keys(tracker).forEach(t=>{
+    serial[t] = {};
+    Object.keys(tracker[t]).forEach(k=>{
+      serial[t][k] = Array.from(tracker[t][k]);
+    });
+  });
+  localStorage.setItem(TRACKER_KEY, JSON.stringify(serial));
+}
+function registerTracker(){
+  // add final reel words into tracker sets
+  const keys = ["roles","subjects","actions","contexts"];
+  for(let i=0;i<4;i++){
+    const k = keys[i];
+    const w = reelWords[i];
+    if(w && tracker[currentTheme] && tracker[currentTheme][k]){
+      tracker[currentTheme][k].add(w);
+    }
+  }
+  saveTracker();
+  updateTrackerUI();
+}
+
+/* ---------- helper to set initial reel words ---------- */
+function initializeReels(){
+  const keys = ["roles","subjects","actions","contexts"];
+  for(let i=0;i<4;i++){
+    const arr = themes[currentTheme][keys[i]] || [];
+    reelWords[i] = arr.length ? choose(arr) : "—";
+  }
+  renderReels();
+}
+initializeReels();
+
+/* initialize menu audio source */
+menuAudio.src = menuMusicSrc;
+
+/* update tracker UI now */
+updateTrackerUI();
+
+/* expose a reset function (for debugging) */
+window.UPG = { tracker, saveTracker, loadTracker, startSpin };
+
+/* play menu music on first user interaction if possible */
+function userGestureStart(){
+  try{ menuAudio.play().catch(()=>{}); }catch(e){}
+  document.removeEventListener("pointerdown", userGestureStart);
+}
+document.addEventListener("pointerdown", userGestureStart);
+
+</script>
+</body>
+</html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ultra Prompt Machine — Illustrated</title>
+<style>
+  :root{
+    --bg:#0f1226;
+    --panel:#1b1f3a;
+    --accent:#ffd24d;
+    --muted:#cbd5ff;
+    --glass: rgba(255,255,255,0.06);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#081026 0%, #071229 60%); color: #fff;}
+  .app {
+    max-width:1100px;
+    margin:24px auto;
+    padding:18px;
+    display:grid;
+    grid-template-columns: 540px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
   .machine {
     background: linear-gradient(180deg,#121428 0%, #0f1528 100%);
     border-radius:20px;
@@ -349,3 +890,4 @@ pingAudio.addEventListener("play",()=>{spawnConfetti();drawConfetti();});
 </script>
 </body>
 </html>
+
