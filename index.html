@@ -23,8 +23,6 @@ grid-template-columns: 540px 1fr;
 gap:20px;
 align-items:start;
 }
-
-/* Left: illustrated slot */
 .machine {
 background: linear-gradient(180deg,#121428 0%, #0f1528 100%);
 border-radius:20px;
@@ -33,7 +31,6 @@ box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 2px 10px rgba(255,255,255,0.02)
 position:relative;
 overflow: visible;
 }
-
 .header {
 display:flex;align-items:center;gap:12px;margin-bottom:12px;
 }
@@ -45,8 +42,6 @@ transform: rotate(-6deg);
 }
 .title {font-size:22px; font-weight:700; color:var(--accent);}
 .subtitle {font-size:12px; color:var(--muted); margin-top:4px;}
-
-/* slot face */
 .slot-face {
 background: linear-gradient(180deg,#0b0f1b,#0f1420);
 border-radius:14px;
@@ -66,17 +61,22 @@ flex:1;
 background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
 border-radius:10px;
 padding:22px 8px;
-min-height:100px;
+height:100px; /* prevent layout glitch */
 display:flex;
 align-items:center;
 justify-content:center;
 position:relative;
 box-shadow: 0 6px 18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+overflow:hidden;
 }
 .word {
 font-size:30px; font-weight:700; text-align:center; letter-spacing:0.6px;
 transition: transform 120ms ease, color 120ms linear;
 -webkit-user-select:none; user-select:none;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+max-width:200px;
 }
 .controls {
 display:flex; gap:12px; align-items:center; justify-content:space-between;width:100%;
@@ -87,8 +87,6 @@ background:var(--glass); padding:8px 12px; border-radius:12px; color:var(--muted
 cursor:pointer; font-weight:600;
 }
 .theme-btn.selected { box-shadow: 0 6px 20px rgba(255,210,77,0.08); border-color: rgba(255,210,77,0.14); color:var(--accent); }
-
-/* Lever */
 .lever-area { width:160px; display:flex; justify-content:center; align-items:center; height:140px; position:relative; }
 .lever {
 width:56px; height:120px; background:linear-gradient(180deg,#592c78,#351a4a); border-radius:12px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
@@ -98,8 +96,6 @@ transition: transform 220ms cubic-bezier(.2,.9,.3,1);
 }
 .lever.grabbed { transform: rotate(18deg) translateY(6px) scale(0.98); }
 .lever-knob { width:38px; height:38px; background: radial-gradient(circle at 30% 30%, #ffd24d, #ffb62e); border-radius:50%; box-shadow: 0 6px 18px rgba(0,0,0,0.6);}
-
-/* Right column (tracker + credits) */
 .side {
 background: linear-gradient(180deg,#0b1220,#071029);
 border-radius:14px; padding:16px; min-height:420px; box-shadow: 0 12px 40px rgba(0,0,0,0.6);
@@ -107,14 +103,8 @@ border-radius:14px; padding:16px; min-height:420px; box-shadow: 0 12px 40px rgba
 .tracker-list { margin-top:12px; display:grid; gap:8px; max-height:520px; overflow:auto; padding-right:8px; }
 .tracker-item { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; }
 .small { font-size:13px; color:var(--muted); }
-
-/* Confetti canvas overlay */
 canvas.confetti { position:fixed; left:0; top:0; width:100%; height:100%; pointer-events:none; z-index:999; }
-
-/* Footer / instruction */
 .footer { margin-top:12px; color:var(--muted); font-size:13px; text-align:center; }
-
-/* Responsive */
 @media (max-width:1000px){
 .app{grid-template-columns: 1fr; padding:12px;}
 .lever-area { width:120px; }
@@ -129,8 +119,7 @@ canvas.confetti { position:fixed; left:0; top:0; width:100%; height:100%; pointe
 <div class="logo">UP</div>
 <div>
 <div class="title">Ultra Prompt Machine</div>
-        <div class="subtitle">Illustrated edition — pull the lever to spin</div>
-        <div class="subtitle">Pull the lever to spin</div>
+<div class="subtitle">Illustrated edition — pull the lever to spin</div>
 </div>
 </div>
 
@@ -143,17 +132,20 @@ canvas.confetti { position:fixed; left:0; top:0; width:100%; height:100%; pointe
 </div>
 
 <div class="controls">
-<div class="left-controls" id="themeButtons"></div>
-<div class="lever-area">
-<div id="lever" class="lever" role="button" aria-label="Pull lever to spin">
-<div class="lever-knob"></div>
-</div>
-</div>
+  <div class="left-controls" id="themeButtons"></div>
+
+  <!-- ✅ NEW mute/unmute button -->
+  <button id="muteButton" class="theme-btn" aria-label="Mute/unmute sound">🔇</button>
+
+  <div class="lever-area">
+    <div id="lever" class="lever" role="button" aria-label="Pull lever to spin">
+      <div class="lever-knob"></div>
+    </div>
+  </div>
 </div>
 
 <div class="footer small">
-        Tip: pull the lever (or tap it) to start. Music will play after your first interaction.
-        Tip: pull the lever (or tap it) to start.
+Tip: pull the lever (or tap it) to start. Music will play after your first interaction.
 </div>
 </div>
 </div>
@@ -162,31 +154,13 @@ canvas.confetti { position:fixed; left:0; top:0; width:100%; height:100%; pointe
 <h2 style="margin:2px 0 6px 0">Tracker</h2>
 <div class="small">Tracks how many unique words you've landed per theme / category.</div>
 <div class="tracker-list" id="trackerList"></div>
-
-<div style="margin-top:12px;">
-<h3 style="margin:6px 0 6px 0">Credits</h3>
-      <div class="small">Music & sounds: put files in assets/sounds/ (example names used in settings)</div>
-      <div class="small" style="margin-top:8px">Code and prompts by Alex Crowhurst. Illustrated UI by you.</div>
-      <div class="small">Music:
-      Silly Theme: "retro-game-arcade" by moodmode from Pixabay',
-      Superhero Theme: "superhero-theme" by Luis_Humanoide from Pixabay',
-      Mashup Theme: "chiptune-symphony-8bit-game" by MusicInMedia from Pixabay',
-      SciFi Theme: "exploring-the-cosmos" by MonolithAudio from Pixabay',
-      Spooky Theme: "halloween-spooky-music" by Inplusmusic from Pixabay',
-      Fantasy Theme: "wizard-rider" by Sonican',
-      Menu Theme: "game-background" by u_vdwj1c20kz from Pixabay',
-      Sound: "ping" by freesound_community',</div>
-      <div class="small" style="margin-top:8px">Code and prompts by Alex Crowhurst. .</div>
-</div>
 </div>
 </div>
 
 <canvas id="confettiCanvas" class="confetti"></canvas>
 
-<!-- Audio elements (do not autoplay) -->
 <audio id="pingAudio" src="assets/sounds/ping.wav" preload="auto"></audio>
 <audio id="menuAudio" src="assets/sounds/menu_theme.mp3" preload="auto" loop></audio>
-<!-- theme music will be swapped dynamically -->
 
 <script>
 /* -------------------------
@@ -540,6 +514,34 @@ document.removeEventListener("pointerdown", userGestureStart);
 }
 document.addEventListener("pointerdown", userGestureStart);
 
+// add this mute button logic:
+
+// ✅ MUTE SYSTEM — added safely at the end
+let isMuted = false;
+const muteButton = document.getElementById("muteButton");
+
+function updateMuteIcon() {
+  muteButton.textContent = isMuted ? "🔈" : "🔇";
+}
+
+muteButton.addEventListener("click", () => {
+  isMuted = !isMuted;
+  updateMuteIcon();
+
+  if (isMuted) {
+    menuAudio.pause();
+    themeAudio.pause();
+    pingAudio.muted = true;
+  } else {
+    pingAudio.muted = false;
+    try {
+      if (spinning && themeAudio.src) themeAudio.play();
+      else menuAudio.play();
+    } catch(e){}
+  }
+});
+
+updateMuteIcon();
 </script>
 </body>
 </html>
