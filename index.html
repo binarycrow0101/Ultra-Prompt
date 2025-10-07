@@ -204,16 +204,12 @@
     </div>
 
     <div class="controls">
-      <div class="left-controls">
-        <button id="spinBtn" class="spin-btn" aria-label="Spin">SPIN <span class="spinner-dot" id="spinDot"></span></button>
-        <button id="quickSpinBtn" class="small-btn" title="Quick spin (faster)">Quick</button>
-      </div>
-
-      <div style="display:flex;gap:8px;align-items:center">
-        <div style="font-size:13px;color:var(--muted)">Speed</div>
-        <input id="speedRange" type="range" min="1" max="3" value="2" />
-      </div>
-    </div>
+  <div class="left-controls">
+    <button id="spinBtn" class="spin-btn" aria-label="Spin">
+      SPIN <span class="spinner-dot" id="spinDot"></span>
+    </button>
+  </div>
+</div>
 
     <div class="phrase" id="finalPhrase" aria-live="polite">Ready — choose a theme and press SPIN</div>
 
@@ -369,8 +365,6 @@ const themes = {
 const themesContainer = document.getElementById('themesContainer');
 const slotsContainer = document.getElementById('slots');
 const spinBtn = document.getElementById('spinBtn');
-const quickSpinBtn = document.getElementById('quickSpinBtn');
-const speedRange = document.getElementById('speedRange');
 const finalPhrase = document.getElementById('finalPhrase');
 const muteBtn = document.getElementById('muteBtn');
 const creditArea = document.getElementById('creditArea');
@@ -585,13 +579,7 @@ loadTheme(currentTheme);
 
 // UI wiring
 spinBtn.addEventListener('click', ()=> spin(false));
-quickSpinBtn.addEventListener('click', ()=> spin(true));
-speedRange.addEventListener('input', ()=> {
-  // small UI effect: pulse the spin dot briefly
-  const dot = document.getElementById('spinDot');
-  dot.style.transform = 'scale(1.35)';
-  setTimeout(()=> dot.style.transform = '', 200);
-});
+
 
 // credits toggle (small)
 document.getElementById('creditsToggle').addEventListener('click', ()=>{
@@ -680,3 +668,4 @@ window.addEventListener('keydown', (e)=>{
 </script>
 </body>
 </html>
+
