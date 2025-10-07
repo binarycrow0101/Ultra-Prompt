@@ -1,174 +1,682 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Theme Spinner Generator</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Situational Prompt Spinner</title>
 <style>
-  body {
-    background-color: #111;
-    color: #fff;
-    font-family: "Segoe UI", sans-serif;
-    text-align: center;
-    padding: 20px;
+  :root{
+    --bg:#0f1724;
+    --card:#0b1220;
+    --accent:#8b5cf6;
+    --muted:#94a3b8;
+    --text:#e6eef8;
+    --glass: rgba(255,255,255,0.03);
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+  body{
+    background: linear-gradient(180deg,var(--bg),#071026 80%);
+    color:var(--text);
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:18px;
+    box-sizing:border-box;
   }
 
-  h1 {
-    color: #f9d923;
-    font-size: 2.5em;
-    margin-bottom: 0.2em;
+  /* container */
+  .app {
+    width:100%;
+    max-width:1100px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
   }
 
-  .spinner-container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin: 30px 0;
+  /* header / themes */
+  .topbar{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .themes {
+    display:flex;
+    gap:8px;
+    overflow:auto;
+    padding-bottom:6px;
+  }
+  .theme-btn{
+    padding:8px 12px;
+    border-radius:12px;
+    background:var(--glass);
+    border:1px solid rgba(255,255,255,0.03);
+    color:var(--text);
+    font-weight:600;
+    white-space:nowrap;
+    cursor:pointer;
+    flex:0 0 auto;
+  }
+  .theme-btn.active{
+    background:linear-gradient(90deg,var(--accent),#4f46e5);
+    color:white;
+    box-shadow:0 6px 18px rgba(79,70,229,0.18);
   }
 
-  .spinner {
-    background: #333;
-    border-radius: 10px;
-    width: 180px;
-    height: 180px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.1em;
-    border: 3px solid #555;
-    box-shadow: 0 0 10px #222 inset;
+  /* main card */
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:16px;
+    padding:14px;
+    box-shadow: 0 6px 24px rgba(2,6,23,0.6);
+    border:1px solid rgba(255,255,255,0.03);
   }
 
-  button {
-    background: #f9d923;
-    border: none;
-    padding: 10px 20px;
-    margin-top: 20px;
-    font-size: 1.2em;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
+  .slots {
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:10px;
+    align-items:center;
   }
 
-  button:hover {
-    background: #ffef6b;
+  .slot{
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.015));
+    border-radius:12px;
+    padding:12px;
+    min-height:92px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.02);
+  }
+  .slot .label{
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+  }
+  .slot .word{
+    font-size:18px;
+    line-height:1.1;
+    font-weight:700;
+    padding:6px 4px;
+    min-height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
   }
 
-  #finalPhrase {
-    margin-top: 30px;
-    font-size: 1.3em;
-    padding: 20px;
-    border-radius: 12px;
-    background: #222;
-    transition: background-color 0.5s, color 0.5s;
+  /* controls */
+  .controls{
+    display:flex;
+    gap:12px;
+    margin-top:12px;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+  }
+  .left-controls{display:flex;gap:10px;align-items:center}
+  .spin-btn{
+    font-weight:800;
+    padding:16px 26px;
+    border-radius:14px;
+    background:linear-gradient(90deg,var(--accent),#06b6d4);
+    border:none;
+    color:white;
+    font-size:18px;
+    cursor:pointer;
+    box-shadow:0 8px 28px rgba(139,92,246,0.18);
+  }
+  .spin-btn[disabled]{opacity:0.6;cursor:not-allowed}
+
+  .small-btn{
+    padding:10px 12px;border-radius:10px;background:var(--glass);border:1px solid rgba(255,255,255,0.03);cursor:pointer;
   }
 
-  /* bright flash color */
-  .highlight {
-    background: #fff75a;
-    color: #111;
+  .credit{
+    font-size:12px;color:var(--muted);text-align:right;
   }
 
-  select {
-    margin-top: 10px;
-    font-size: 1em;
-    padding: 6px;
-    border-radius: 6px;
+  /* final phrase area */
+  .phrase{
+    margin-top:12px;
+    padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);
+    min-height:48px;display:flex;align-items:center;justify-content:center;font-weight:700;
+  }
+
+  /* responsive (mobile-first) */
+  @media(min-width:640px){
+    .slot .word{font-size:20px}
+    .slots{gap:12px}
+  }
+
+  /* portrait priority: stack on narrow widths */
+  @media(max-width:480px){
+    .slots{
+      grid-template-columns: repeat(1, 1fr);
+    }
+    .controls{flex-direction:column;align-items:stretch}
+    .left-controls{justify-content:space-between}
+    .credit{text-align:center}
+  }
+
+  /* landscape/tablet: show 4 columns */
+  @media(min-width:900px){
+    body{padding:28px}
+    .slots{grid-template-columns:repeat(4,1fr)}
+    .card{padding:18px}
+  }
+
+  /* little spin indicator */
+  .spinner-dot{height:8px;width:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-left:8px}
+  .spin-active .spinner-dot{background:#fff;box-shadow:0 0 8px var(--accent)}
+  /* confetti canvas full screen */
+  #confetti{
+    position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:1200;
   }
 </style>
 </head>
 <body>
+<div class="app" role="application" aria-label="Situational Prompt Spinner">
+  <div class="topbar">
+    <div class="themes" id="themesContainer" aria-hidden="false">
+      <!-- theme buttons generated here -->
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button id="muteBtn" class="small-btn" aria-pressed="false" title="Mute/unmute">🔊</button>
+      <button id="creditsToggle" class="small-btn" title="Credits">i</button>
+    </div>
+  </div>
 
-<h1>Theme Spinner Generator</h1>
-<p>Select a theme and spin to create a random phrase!</p>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <div style="font-weight:800">Prompt Spinner</div>
+      <div style="font-size:13px;color:var(--muted)">Touch spin for a random prompt</div>
+    </div>
 
-<select id="themeSelect"></select>
+    <div class="slots" id="slots">
+      <!-- slot elements created by JS -->
+    </div>
 
-<div class="spinner-container">
-  <div class="spinner" id="roleSpinner">Role</div>
-  <div class="spinner" id="subjectSpinner">Subject</div>
-  <div class="spinner" id="actionSpinner">Action</div>
-  <div class="spinner" id="contextSpinner">Context</div>
+    <div class="controls">
+      <div class="left-controls">
+        <button id="spinBtn" class="spin-btn" aria-label="Spin">SPIN <span class="spinner-dot" id="spinDot"></span></button>
+        <button id="quickSpinBtn" class="small-btn" title="Quick spin (faster)">Quick</button>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="font-size:13px;color:var(--muted)">Speed</div>
+        <input id="speedRange" type="range" min="1" max="3" value="2" />
+      </div>
+    </div>
+
+    <div class="phrase" id="finalPhrase" aria-live="polite">Ready — choose a theme and press SPIN</div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+      <div style="font-size:12px;color:var(--muted)">Tap theme to switch banks</div>
+      <div class="credit" id="creditArea">Made by BinaryCrow • Credits: </div>
+    </div>
+  </div>
 </div>
 
-<button id="spinButton">🎲 Spin!</button>
+<canvas id="confetti"></canvas>
 
-<div id="finalPhrase"></div>
-
+<!-- Audio elements: we will create Audio objects in JS; kept empty in HTML -->
 <script>
+/*
+  ======== HOW TO USE ========
+  - Replace the word lists in the `themes` object below with your real theme lists.
+    Each theme has 4 arrays: roles, subjects, actions, contexts.
+    Keep the order: roles -> subjects -> actions -> contexts.
+
+  - For per-theme audio: place audio files in same folder and set filenames in `music` property.
+    Example: music: { menu: 'menu.mp3', spin: 'fantasy-spin.mp3' }
+    The menu music will play when theme selected; spin music will play when spinning.
+
+  - The code prevents overlapping music by stopping current audio before starting next.
+  - Mute toggles and persists to localStorage.
+  - Confetti animation runs on spin complete.
+*/
+
 const themes = {
   Fantasy: {
     roles: ["Knight", "Wizard", "Barbarian", "Necromancer", "Bard", "Blacksmith", "Jester", "Alchemist", "Cleric", 
-      "Ranger", "Rogue", "Paladin", "Druid", "Warlock", "Sorcerer", "Monk", "Prince", "Princess", "King", "Queen"],
-    subjects: ["Dragon", "Elf", "Orc", "Goblin", "Unicorn", "Golem", "Giant", "Demon"],
+                "Ranger", "Rogue", "Paladin", "Druid", "Warlock", "Sorcerer", "Monk", "Prince", "Princess", "King", "Queen"],
+    subjects: ["Dragon", "Elve", "Orc", "Goblin", "Unicorn", "Golem", "Giant", "Demon", ],
     actions: ["casting spells", "forging weapons", "summoning something horrific", "fighting", "exploring", "guarding treasure", "courting",
-      "negotiating with a mysterious entity", "betraying their kind", "questing for loot", "accidentally awakening a beast", "tricking royalty"],
+      "negotiates with a mysterious entity", "betrays their kind", "quests for loot", "accidentally awakens a beast", "tricks royalty"],
     contexts: ["in a half-sunken castle", "during a fae market", "at the witching hour", "while it rains frogs", "before the coronation", 
       "in a dungeon", "in a castle", "in a magic forest", "in the underworld", "in a dragon’s cave", "in the tundra", "atop a crumbling tower",
       "on a floating island","in a cursed library","at the king’s feast","inside a talking tree","at the edge of the world",
-      "within a magical storm", "beneath an enchanted waterfall", "during a jousting tournament","in a goblin market"]
+      "within a magical storm", "beneath an enchanted waterfall", "during a jousting tournament","in a goblin market"],
+    music: {menu: "fantasy-menu.mp3", spin: "fantasy-spin.mp3"}
   },
   "Sci-Fi": {
     roles: ["Captain", "Cosmic", "Astronaut", "Engineer", "Virtual", "Alien", "Space Pilot", "Android", "Time Traveler", "Quantum Hacker", "Galactic Trader", "Mech Operator", "Starship Commander", "Astrobiologist", "Exo-Scout", "Warp Navigator"],
-    subjects: ["Xenomorph", "Robot", "Cyborg", "Scientist", "Kaiju", "Cowboy", "Cowgirl", "AI Overlord", "Mutant Plant", "Sentient Being", "Drone", "Space Whale", "Plasma Beast", "Cosmic Entity", "Nanobot"],
+    subjects: ["Xenomorph", "Robot", "Cyborg", "Scientist", "Kaiju", "Cowboy", "Cowgirl", "AI Overlord", "Mutant Plant", "Sentient being", "Drone", "Space Whale", "Plasma Beast", "Cosmic Entity", "Nanobot"],
     actions: ["inventing", "teleporting", "exploding", "phoning home","hacking a terminal", "scanning", "solving a problem", "making first contact", "rewriting code", "debugging reality", "escaping an asteroid", "charging a laser", "analyzing alien DNA", "piloting a mech", "dodging meteors", "activating a wormhole"],
-    contexts: ["near a collapsing wormhole", "inside a bio-lab", "during a zero-g festival", "on a forgotten colony", "at the last refueling stop", "in a spaceship", "in cyberspace", "in a secret lab", "at a distant planet", "in a wormhole", "on the moon", "in zero gravity", "on a space station", "inside a black hole", "on a space colony", "on an asteroid mining rig", "in a stasis chamber", "near a supernova", "on a parallel Earth", "inside a dimensional rift", "in an alien marketplace"]
+    contexts: ["near a collapsing wormhole", "inside a bio-lab", "during a zero-g festival", "on a forgotten colony", "at the last refueling stop", "in a spaceship", "in cyberspace", "in a secret lab", "at a distant planet", "in a wormhole", "on the moon", "in zero gravity", "on a space station", "inside a black hole", "on a space colony", "on an asteroid mining rig", "in a stasis chamber", "near a supernova", "on a parallel Earth", "inside a dimensional rift", "in an alien marketplace"],
+    music: {menu: "scifi-menu.mp3", spin: "scifi-spin.mp3"}
   },
   Spooky: {
-    roles: ["Graveyard Caretaker", "Pale Medium", "Sleepwalker", "Elder Witch", "Lord", "Baroness", "Creepy", "Crazy", "Murderous", "Suffering", "Wretched", "Stinky", "Upset", "Raging", "Killer", "Cursed", 
-      "Lost", "Hitchhiker", "Crusty", "Mad"],
-    subjects: ["Vampire", "Werewolf", "Zombie", "Skeleton", "Ghost", "Witch", "Jack O'Lantern", "Shadow", "Spider", "Frog", "Ghoul", "Clown", "Puppet", "Cheese", "Potato"],
+    roles: ["Graveyard Caretaker", "Pale Medium", "Sleepwalker", "Elder Witch", "Lord", "Baroness", "Creepy", "Crazy", "Murderous", "Suffering", "Wretched", "Stinky", "", "Upset", "Raging", "Killer", "Cursed", 
+                "Lost", "Hitchhiker", "Crusty", "Mad"],
+    subjects: ["Vampires", "Werewolves", "Zombies", "Skeletons", "Ghosts", "Witches", "Jack O'Lantern", "Shadow", "Spider", "Frogs", "Ghouls", "Clowns",
+                    "Puppet", "Cheese", "Potato",],
     actions: ["haunting", "conjuring", "cursing", "moaning", "playing chess", "crowding", "smashing pumpkins", "excreting ooze", 
-      "trick or treating", "lurking", "whispering secrets", "haunting dreams", "sliding silently across floors", "rattling chains", "brewing potions", "raising zombies",
-      "opening cursed books", "playing in a skeleton jazz band", "floating through walls"],
+                    "trick or treating", "lurking", "whispering secrets", "haunting dreams", "sliding silently across floors", "rattling chains", "brewing potions", "raising zombies",
+                    "opening cursed books", "playing in a skeleton jazz band", "floating through walls"],
     contexts: ["in a haunted house", "at a graveyard", "in a swamp", "in a dark forest", "in a crypt", "at a seance", "during a tarot card reading",
-      "whilst playing poker", "at comic con", "in a diner", "in an abandoned theme park", "in an abandoned asylum",  "during a witching hour ritual",
-      "inside a coffin factory", "in a room full of broken dolls", "in a village of ghosts", "inside a haunted school", "on a haunted carnival ride", "in a meat factory", 
-      "in a boiler room"]
+                    "whilst playing poker", "at comic con", "in a diner", "in an abandoned theme park", "in an abandoned asylum",  "during a witching hour ritual",
+                     "inside a coffin factory", "in a room full of broken dolls", "in a village of ghosts", "inside a haunted school", "on a haunted carnival ride", "in a meat factory", 
+                     "in a boiler room"],
+    music: {menu: "spooky-menu.mp3", spin: "spooky-spin.mp3"}
   },
   Silly: {
-    roles: ["Clumsy", "Grumpy", "Depressed", "Loved Up", "Broken", "Ticklish", "Excited", "Sleepy", "Hyper", "Confused", "Bumbling", "Cheerful", "Forgetful", "Sneezy", "Chatty"],
+    roles: ["Clumsy", "Grumpy", "Depressed", "Loved Up", "Broken", "Ticklish", "Excited", "Sleepy", "Hyper", "Confused", "Bumbling", "Cheerful", "Forgetful", "Clumsy", "Sneezy", "Chatty"],
     subjects: ["Clown", "Penguin", "Monkey", "Banana", "Hamster", "Muppet", "Hand Puppet", "Rubber Duck", "Marshmallow", "Toaster", "Donut", "Sock", "Unicorn Plush", "Cactus", "Dracula"],
     actions: ["juggling", "wearing tiny trousers", "wearing a jacket made of cheese", "moonwalking", "eating", "dancing", "arguing", "slipping", "tripping", "balancing on one foot", "screaming happily", "tickling", "singing badly", "wearing silly hats", "blowing bubbles", "chasing a squirrel", "making funny faces"],
-    contexts: ["at a circus", "in a rollercoaster", "in a supermarket", "at a birthday party", "at a theme park", "in a ball pit", "on a trampoline", "in a pillow fight", "in a bouncy castle", "in a snowball fight", "at a comedy show", "in a messy kitchen", "on a playground", "in a giant teacup ride", "inside a cardboard fort"]
+    contexts: ["at a circus", "in a rollercoaster", "in a supermarket", "at a birthday party", "at a theme park", "in a ball pit", "on a trampoline", "in a pillow fight", "in a bouncy castle", "in a snowball fight", "at a comedy show", "in a messy kitchen", "on a playground", "in a giant teacup ride", "inside a cardboard fort"],
+    music: {menu: "silly-menu.mp3", spin: "silly-spin.mp3"}
+  },
+  Superhero: {
+    roles: ["Captain", "The Amazing", "The Invisible", "The Space", "Wonder", "The Dark", "Star", "Ultra", "Aero", "Master", "Alpha", "Radioactive",
+                "The Lone", "Baron", "Battle", "The Beef", "The Big", "The Boom", " The Crusher", " The Dazzler", "The Frost", "Doctor", "The Fantastic", "The Frightful", "The Giant", "Ghost", "The Hellfire"],
+    subjects: ["Lord", "Raccoon", "Witch", "Pig", "Weasel", "Gibbon", "Hawk", "Zero", "Cyborg", "Hamster", "Mutant", "Banshee", 
+                    "Wolf", "Queen", "Boom", "Spider", "Soldier", "Cyclops", "Star", "Defender", "Dinosaur", "Cobra", "Storm", "Frog", "Chicken"],
+    actions: ["shopping", "arguing", "reading", "working", "flying", "climbing a wall", "eating", "dining", "rescuing a cat", "chilling", "fighting",
+                    "saving the day", "rescuing a bus", "rescuing a civillian", "rescuing civillians", "investigating a mystery", "helping a neighbor", "doing chores"],
+    contexts: ["during rush hour", "on a rooftop gala", "in a coffee shop", "in a library", "at a wedding", "at a funeral", "in a classroom", "in a car park", "at a zoo", "during a natural disaster", 
+                    "during an alien invasion", "whilst being attacked by a super villain", "from an impending disaster", "at a press conference", "during a bank robbery",
+                    "in a collapsing skyscraper", "on top of a speeding train", "on live television"],
+    music: {menu: "hero-menu.mp3", spin: "hero-spin.mp3"}
+  },
+  Mashup: {
+    roles: ["Frog", "Elephant", "Boar", "Raven", "Giraffe", "Tapir", "Weasel", "Otter", "Beaver",
+            "Buffalo", "Cow", "Spider", "Rabbit", "Dog", "Dinosaur", "Octopus", "", "Penguin", 
+            "Crab", "Cat", "Bear", "Lion", "Badgers", "Xenomorph", "Android", "Shark", "Unicorn", "Shrimp", 
+            "Raccoon", "Turtle", "Rat", "Pony", "Tiger", "Ant", "Bat", "Koala", "Sloth", "Dragon",
+            "Chinchilla", "Skeleton", "Pigeon", "Lobster", "Walrus", "Armadillo", "Chicken", "Goblin", "Dog", "Mermaid", "Centaur", "Werewolf", "Vampire Bat", "Gnome", "Fairy", "Alien Blob", "Robot Dog", 
+            "Mutant Hamster", "Zombie Cat", "Cyborg Chicken", "Mini Dragon", "Space Slug", "Tentacle Monster", 
+            "Flying Fish", "Talking Donkey", "Living Rock", "A Painting of a", "Haunted Doll", "Giant Rat", 
+            "Fire Sprite", "Ice Golem", "Shadow Beast", "Moon Rabbit", "Pumpkin Monster", "Cosmic Owl", 
+            "Time Traveler", "Ghost Parrot", "Invisible Cat", "Frost Troll", "Sand Worm", "Giant Spider", 
+            "Banana Knight", "Chocolate Ogre", "Cheese Dragon", "Sock Monster", "Killer Whale", "Fox", 
+            "Neon Tiger", "Gummy Bear", "Jellyfish", "Vortex Frog", "Crazy Chicken"],
+    subjects: ["Knight", "Wizard", "Healer", "Archer", "Bard", "Thief", "Necromancer", 
+            "Paladin", "Barbarian", "Alchemist", "Engineer", "Inventor", "Pilot", 
+            "Captain", "Admiral", "Navigator", "Spy", "Assassin", "Scout", "Soldier", 
+            "General", "Guard", "Jester", "King", "Queen", "Prince", "Princess", 
+            "Peasant", "Farmer", "Blacksmith", "Miner", "Merchant", "Scholar", 
+            "Librarian", "Teacher", "Student", "Priest", "Monk", "Oracle", "Prophet", 
+            "Shaman", "Druid", "Hunter", "Fisherman", "Cook", "Butcher", "Baker", 
+            "Brewer", "Innkeeper", "Explorer", "Cartographer", "Sailor", "Pirate", 
+            "Smuggler", "Outlaw", "Sheriff", "Deputy", "Detective", "Investigator", 
+            "Doctor", "Surgeon", "Nurse", "Witch Doctor", "Mechanic", "Taxi Driver", 
+            "Racer", "Athlete", "Gladiator", "Champion", "Wrestler", "Boxer", 
+            "Samurai", "Ronin", "Ninja", "Sensei", "Mentor", "Apprentice", "Magician", 
+            "Illusionist", "Fortune Teller", "Trickster", "Hero", "Villain", 
+            "Antihero", "Rebel", "Revolutionary", "Diplomat", "Ambassador", 
+            "Politician", "Judge", "Lawyer", "Banker", "Thug", "Crime Boss", 
+            "Cult Leader", "Prophet of Doom", "Herald", "Delivery", "Courier", 
+            "Wanderer", "Hermit", "Nomad", "Survivor", "Scientist", "Astronaut", "Alien", 
+            "Robot", "Hacker", "AI Core", "Space Marine", "Influencer", 
+            "Starship Captain", "Time Traveler", "Historian", "Archivist", 
+            "Storyteller", "Painter", "Musician", "Sculptor", "Poet", "Philosopher", 
+            "Dreamer", "Visionary", "Madman", "Trickster God", "Demi-God", "Grecian God",
+            "Spirit Guardian", "Elemental", "Shape-shifter", "Mustachio",
+             "CEO", "Zombie", "Vampire" , "Muppet", "Sock Puppet", "Kaiju", "Transforming", "Hippy", "Crusty"],
+    actions: ["dancing", "sleeping", "baking cupcakes", "juggling", "painting", "singing", "fighting", 
+            "building a Lego set", "haunting", "surfing", "moonwalking", "shopping", "arguing", "reading", 
+            "working", "driving a golf cart", "climbing", "eating cheese", "solving a mystery", "being disgusted", 
+            "poisoned", "slaying", "pumping iron","eating cheese", "playing the bassoon", "having a tea party", 
+            "competing in a staring match", "raising money", "presenting their ideas", "speed dating", 
+            "performing a musical", "wearing tiny trousers", "sharing a dessert", "dying", "laughing", 
+            "serving drinks", "cutting hair", "playing football", "playing soccer", "bringing the ruckus", 
+            "comparing hats", "playing pinball", "checking the goods", "fishing", "wearing a jacket made of cheese", "carving wooden spoons",
+            "making a secret deal", "eating pizza", "riding a T-Rex", "participating in a hotdog eating contest",  "casting spells", "summoning a storm", "building a time machine", "hacking a computer", "climbing a volcano", 
+            "riding a giant snail", "teleporting", "sneaking past guards", "playing hide and seek", "chasing shadows", 
+            "taming a dragon", "stealing treasure", "creating a potion", "swinging on vines", "jumping through portals", 
+            "painting graffiti", "singing opera", "writing a novel", "escaping a maze", "inventing gadgets", 
+            "dancing on rooftops", "riding a comet", "dueling with swords", "feeding unicorns", "swimming with sharks", 
+            "riding a mechanical horse", "playing pranks", "solving riddles", "baking a magical cake", "testing a jetpack", 
+            "training minions", "fighting off zombies", "wrangling ghosts", "building a cheese fortress", "stealing a crown", 
+            "casting shadow puppets", "racing kangaroos", "wrestling giant frogs", "conducting an orchestra", "driving a UFO"],
+    contexts: ["during the fusion festival", "at the end of the empire", "between two parallel sitcoms", "while everyone is asleep", "on the last ferry", "in the Congo", "at a TED convention", "in a castle", "in a spaceship", "on the moon", "in a haunted house", "in a circus", "in a swamp",
+             "in a library", "in a volcano", "in a coffee shop", "in a library", "at a wedding", "at a funeral", "in a classroom", "on a pirate ship", 
+             "on stage", "in a candy store", "in a barber shop", "at a fashion show","in a pub", "at Disney World", "in the big city", 
+             "on set of a movie shoot", "at the gym", "in hospital", "", "at a saloon", "in a cheese factory", "off a cliff’s edge", "in a field battle",
+             "in a thrift store", "during an earthquake", "on a zoom call", "during armageddon", "in a sewer", "on the subway", "in hell", 
+            "at the laundromat","in the middle of traffic", "during karaoke night","at a silent disco", "in a gladiator arena", "at a bus stop", "on a cloud", "inside a volcano", "underwater in Atlantis", "on a flying carpet", "in a haunted forest", 
+            "inside a giant pumpkin", "at a zombie apocalypse", "during a snowstorm", "on a rollercoaster", 
+            "in a neon city", "inside a video game", "on a space station", "in a cave of crystals", "on a pirate island", 
+            "during a magic duel", "in a labyrinth", "on a tropical island", "in a candy factory", "at a wizard school", 
+            "in a secret laboratory", "on a comet", "in a junkyard", "on a train to nowhere", "inside a giant robot", 
+            "on top of a giant cake", "in a miniature village", "during a monster invasion", "inside a snow globe", 
+            "on the set of a reality show", "in a haunted carnival", "inside a magical mirror", "at a superhero battle", 
+            "in a library of forbidden books", "under the city streets", "on a mountaintop temple", "inside a giant clock", 
+            "in a dimension of upside-down physics", "on a floating island", "in a circus of illusions", "at the edge of time"],
+    music: {menu: "mashup-menu.mp3", spin: "mashup-spin.mp3"}
   }
 };
 
-// populate themes dropdown
-const themeSelect = document.getElementById("themeSelect");
-Object.keys(themes).forEach(theme => {
-  const opt = document.createElement("option");
-  opt.value = theme;
-  opt.textContent = theme;
-  themeSelect.appendChild(opt);
+// UI references
+const themesContainer = document.getElementById('themesContainer');
+const slotsContainer = document.getElementById('slots');
+const spinBtn = document.getElementById('spinBtn');
+const quickSpinBtn = document.getElementById('quickSpinBtn');
+const speedRange = document.getElementById('speedRange');
+const finalPhrase = document.getElementById('finalPhrase');
+const muteBtn = document.getElementById('muteBtn');
+const creditArea = document.getElementById('creditArea');
+const confettiCanvas = document.getElementById('confetti');
+
+let currentTheme = Object.keys(themes)[0];
+let slotElements = [];
+let intervalHandles = [];
+let stopTimeouts = [];
+let isSpinning = false;
+let currentAudio = null;
+let isMuted = localStorage.getItem('spinnerMuted') === 'true';
+
+// tune mobile-first
+document.body.classList.toggle('spin-active', false);
+
+// init mute state
+function updateMuteUI(){
+  muteBtn.textContent = isMuted ? '🔇' : '🔊';
+  muteBtn.setAttribute('aria-pressed', isMuted);
+}
+updateMuteUI();
+
+muteBtn.addEventListener('click', () => {
+  isMuted = !isMuted;
+  localStorage.setItem('spinnerMuted', isMuted);
+  updateMuteUI();
+  if(currentAudio) currentAudio.muted = isMuted;
 });
 
-const spinButton = document.getElementById("spinButton");
-const finalPhrase = document.getElementById("finalPhrase");
-
-function randomItem(array) {
-  return array[Math.floor(Math.random() * array.length)];
+// build theme buttons
+function buildThemeButtons(){
+  themesContainer.innerHTML = '';
+  Object.keys(themes).forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'theme-btn' + (name===currentTheme ? ' active' : '');
+    btn.textContent = name;
+    btn.addEventListener('click', () => {
+      if (isSpinning) return; // avoid switching mid-spin
+      currentTheme = name;
+      document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      loadTheme(name);
+    });
+    themesContainer.appendChild(btn);
+  });
 }
 
-spinButton.addEventListener("click", () => {
-  const theme = themes[themeSelect.value];
-  const role = randomItem(theme.roles);
-  const subject = randomItem(theme.subjects);
-  const action = randomItem(theme.actions);
-  const context = randomItem(theme.contexts);
+// create slots
+function createSlots(){
+  slotsContainer.innerHTML = '';
+  slotElements = [];
+  const labels = ['Roles','Subjects','Actions','Contexts'];
+  labels.forEach((label,i) => {
+    const s = document.createElement('div');
+    s.className = 'slot';
+    s.innerHTML = `<div class="label">${label}</div><div class="word" id="slot-${i}">—</div>`;
+    slotsContainer.appendChild(s);
+    slotElements.push(s.querySelector('.word'));
+  });
+}
 
-  document.getElementById("roleSpinner").textContent = role;
-  document.getElementById("subjectSpinner").textContent = subject;
-  document.getElementById("actionSpinner").textContent = action;
-  document.getElementById("contextSpinner").textContent = context;
+// pick random element safely
+function pickRandom(arr){ if(!arr || arr.length===0) return '—'; return arr[Math.floor(Math.random()*arr.length)]; }
 
-  const phrase = `${role} ${subject} ${action} ${context}.`;
+// load theme content and optionally play menu music
+function loadTheme(name){
+  const theme = themes[name];
+  // initialize slot displays to a random item from each bank
+  slotElements[0].textContent = pickRandom(theme.roles);
+  slotElements[1].textContent = pickRandom(theme.subjects);
+  slotElements[2].textContent = pickRandom(theme.actions);
+  slotElements[3].textContent = pickRandom(theme.contexts);
+  // update phrase text hint
+  finalPhrase.textContent = `Theme: ${name} — press SPIN to generate a prompt`;
+  // play menu music if declared
+  if(theme.music && theme.music.menu){
+    playThemeMusic(theme.music.menu);
+  } else {
+    stopAudio();
+  }
+}
+
+// audio helpers - ensure no overlap
+function stopAudio(){
+  if(currentAudio){
+    try{ currentAudio.pause(); currentAudio.currentTime = 0; } catch(e){}
+    currentAudio = null;
+  }
+}
+function playThemeMusic(src){
+  // stop any current audio first
+  stopAudio();
+  try{
+    currentAudio = new Audio(src);
+    currentAudio.loop = true;
+    currentAudio.muted = isMuted;
+    currentAudio.volume = 0.7;
+    currentAudio.play().catch(()=>{/* play blocked on mobile until user interacts; ok */});
+  } catch(e){ console.warn('audio play failed', e); }
+}
+function playSpinMusic(src){
+  // stop previous short music, but keep it non-looping
+  stopAudio();
+  try{
+    currentAudio = new Audio(src);
+    currentAudio.muted = isMuted;
+    currentAudio.volume = 0.9;
+    currentAudio.loop = false;
+    currentAudio.play().catch(()=>{/* autoplay may be blocked */});
+  } catch(e){}
+}
+
+// spin logic: animate each slot by rapidly swapping text, then stop after a delay
+function spin(allFast=false){
+  if(isSpinning) return;
+  isSpinning = true;
+  spinBtn.disabled = true;
+  document.body.classList.add('spin-active');
+  finalPhrase.textContent = 'Spinning…';
+
+  const theme = themes[currentTheme];
+  const speedFactor = Number(speedRange.value); // 1..3
+  const baseInterval = allFast ? 50 : 120; // smaller = faster
+  const intervals = [
+    baseInterval / speedFactor,
+    (baseInterval*1.1) / speedFactor,
+    (baseInterval*1.4) / speedFactor,
+    (baseInterval*1.8) / speedFactor
+  ];
+
+  // clear existing intervals/timeouts
+  intervalHandles.forEach(h => clearInterval(h)); intervalHandles = [];
+  stopTimeouts.forEach(t => clearTimeout(t)); stopTimeouts = [];  
+
+  // arrays to spin through
+  const arrays = [theme.roles, theme.subjects, theme.actions, theme.contexts];
+
+  // start per-slot interval
+  for(let i=0;i<4;i++){
+    const el = slotElements[i];
+    // safety: if array missing fill with placeholder
+    const arr = arrays[i] && arrays[i].length ? arrays[i] : ['—'];
+    const handle = setInterval(()=> {
+      el.textContent = pickRandom(arr);
+    }, intervals[i]);
+    intervalHandles.push(handle);
+  }
+
+  // play spin music (non looping) if available
+  if(theme.music && theme.music.spin){
+    playSpinMusic(theme.music.spin);
+  }
+
+  // stop times are staggered and slightly randomized
+  const stopDelays = [
+    1000 + Math.random()*300,
+    1400 + Math.random()*400,
+    1900 + Math.random()*500,
+    2200 + Math.random()*700
+  ];
+
+  // scale stop timings by speed factor (higher speed -> shorter)
+  for(let i=0;i<4;i++){
+    const delay = stopDelays[i] / speedFactor;
+    const t = setTimeout(()=> {
+      // stop this slot interval
+      clearInterval(intervalHandles[i]);
+      intervalHandles[i] = null;
+      // set to final pick from its bank
+      const arr = arrays[i] && arrays[i].length ? arrays[i] : ['—'];
+      slotElements[i].textContent = pickRandom(arr);
+
+      // when final slot stopped, finish spin sequence
+      if(i === 3){
+        finishSpin();
+      }
+    }, delay);
+    stopTimeouts.push(t);
+  }
+}
+
+// called when everything has stopped
+function finishSpin(){
+  isSpinning = false;
+  spinBtn.disabled = false;
+  document.body.classList.remove('spin-active');
+
+  // build sentence in order Roles Subjects Actions Contexts
+  const role = slotElements[0].textContent;
+  const subj = slotElements[1].textContent;
+  const act = slotElements[2].textContent;
+  const ctx = slotElements[3].textContent;
+  const phrase = `${role} ${act} ${subj} ${ctx}`;
   finalPhrase.textContent = phrase;
 
-  // bright flash
-  finalPhrase.classList.add("highlight");
-  setTimeout(() => finalPhrase.classList.remove("highlight"), 1200);
+  // confetti explosion
+  launchConfetti();
+
+  // if spin music ended earlier it won't loop; if you want menu music to resume,
+  // re-play menu music after short delay
+  const theme = themes[currentTheme];
+  if(theme.music && theme.music.menu){
+    setTimeout(()=> { if(!isSpinning) playThemeMusic(theme.music.menu); }, 1200);
+  }
+}
+
+// initial build
+createSlots();
+buildThemeButtons();
+loadTheme(currentTheme);
+
+// UI wiring
+spinBtn.addEventListener('click', ()=> spin(false));
+quickSpinBtn.addEventListener('click', ()=> spin(true));
+speedRange.addEventListener('input', ()=> {
+  // small UI effect: pulse the spin dot briefly
+  const dot = document.getElementById('spinDot');
+  dot.style.transform = 'scale(1.35)';
+  setTimeout(()=> dot.style.transform = '', 200);
 });
+
+// credits toggle (small)
+document.getElementById('creditsToggle').addEventListener('click', ()=>{
+  const txt = creditArea.textContent.includes('Made by') ? 'Design by You • Music: add your credits' : 'Made by You • Credits here';
+  creditArea.textContent = txt;
+});
+
+// prevent overlapping quick presses (disable spin while spinning)
+// already enforced via isSpinning & disabled button
+
+// --- Confetti system ---
+const confetti = confettiCanvas;
+const ctx = confetti.getContext('2d');
+let confettiPieces = [];
+function resizeConfetti(){ confetti.width = window.innerWidth; confetti.height = window.innerHeight; }
+window.addEventListener('resize', resizeConfetti);
+resizeConfetti();
+
+function rand(min,max){ return Math.random()*(max-min)+min; }
+function makePiece(x,y){
+  return {
+    x,y,
+    vx: rand(-6,6),
+    vy: rand(-12,-4),
+    size: rand(6,14),
+    rot: rand(0,360),
+    vr: rand(-8,8),
+    color: ['#ff6b6b','#ffd166','#6ee7b7','#60a5fa','#c084fc'][Math.floor(Math.random()*5)],
+    life: 0,
+    ttl: rand(60,120)
+  };
+}
+function launchConfetti(){
+  // spawn lots of pieces
+  const cx = window.innerWidth/2, cy = window.innerHeight/3;
+  for(let i=0;i<120;i++){
+    confettiPieces.push(makePiece(cx + rand(-200,200), cy + rand(-50,50)));
+  }
+  runConfetti();
+}
+let confettiAnim = null;
+function runConfetti(){
+  if(confettiAnim) return;
+  function frame(){
+    ctx.clearRect(0,0,confetti.width,confetti.height);
+    for(let i=confettiPieces.length-1;i>=0;i--){
+      const p = confettiPieces[i];
+      p.life++;
+      p.vy += 0.35; // gravity
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+      // draw rectangle
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI/180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+      ctx.restore();
+
+      if(p.y > confetti.height + 50 || p.life > p.ttl){
+        confettiPieces.splice(i,1);
+      }
+    }
+    if(confettiPieces.length>0){
+      confettiAnim = requestAnimationFrame(frame);
+    } else {
+      cancelAnimationFrame(confettiAnim);
+      confettiAnim = null;
+      ctx.clearRect(0,0,confetti.width,confetti.height);
+    }
+  }
+  confettiAnim = requestAnimationFrame(frame);
+}
+
+// keyboard accessibility: space to spin, s for quick spin
+window.addEventListener('keydown', (e)=>{
+  if(e.code === 'Space'){ e.preventDefault(); spin(false); }
+  if(e.key === 's' || e.key === 'S'){ spin(true); }
+});
+
+// Initial note: replace the placeholder arrays & audio names above with your theme details.
+// When you're ready, paste your theme lists (roles/subjects/actions/contexts for each theme)
+// and the filenames for menu/spin music. The audio files should be accessible relative to this file.
+
 </script>
 </body>
 </html>
