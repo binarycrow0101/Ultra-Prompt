@@ -1,276 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Whispers from the Void</title>
 <style>
   body {
-    background: radial-gradient(ellipse at center, #0a0a0a 0%, #000 100%);
-    color: #b0ffa7;
+    margin: 0;
+    background: radial-gradient(circle at center, #000 60%, #010105);
+    color: #c0ffc0;
     font-family: 'Courier New', monospace;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
     overflow: hidden;
-  }
-  h1 {
-    color: #90ffb0;
-    font-size: 1.5em;
-    text-shadow: 0 0 10px #53ff8a;
-  }
-  .radio {
-    position: relative;
-    width: 280px;
-    height: 400px;
-    background: #111;
-    border: 4px solid #444;
-    border-radius: 15px;
-    box-shadow: 0 0 25px rgba(50,255,80,0.3);
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px;
-  }
-  .screen {
-    width: 90%;
-    height: 100px;
-    background: #002000;
-    border: 2px inset #204020;
-    color: #b0ffa7;
-    display: flex;
-    align-items: center;
     justify-content: center;
-    font-size: 1.1em;
-    text-align: center;
-    padding: 10px;
-    text-shadow: 0 0 8px #40ff60;
-    transition: opacity 1s ease;
+    align-items: center;
   }
-  .dial {
+
+  .screen {
     position: relative;
-    width: 160px;
-    height: 160px;
-    background: radial-gradient(circle at 30% 30%, #333 0%, #111 80%);
-    border-radius: 50%;
-    border: 4px solid #666;
-    box-shadow: inset 0 0 20px #000, 0 0 10px #0f0;
-    cursor: grab;
-    transition: transform 0.2s ease;
+    width: 90%;
+    max-width: 500px;
+    height: 220px;
+    background: rgba(10,20,10,0.8);
+    border: 3px solid #3f3;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 20px #3f3;
   }
-  .dial::after {
+
+  /* Static lines */
+  .static-line {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    animation: staticMove 1s linear infinite;
+  }
+
+  @keyframes staticMove {
+    0% { top: 0; }
+    100% { top: 100%; }
+  }
+
+  /* Mist particles */
+  .mist {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(100,255,100,0.03) 0%, transparent 80%);
+    animation: drift 8s linear infinite;
+  }
+
+  @keyframes drift {
+    0% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(10px, -10px) scale(1.1); }
+    100% { transform: translate(0,0) scale(1); }
+  }
+
+  /* Flicker effect */
+  .screen::after {
     content: "";
     position: absolute;
-    width: 6px;
-    height: 40px;
-    background: #0f0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.02);
+    animation: flicker 0.15s infinite;
+  }
+
+  @keyframes flicker {
+    0%, 100% { opacity: 0.05; }
+    50% { opacity: 0.15; }
+  }
+
+  #phrase {
+    position: relative;
+    z-index: 2;
+    padding: 20px;
+    font-size: 1.1em;
+    line-height: 1.5em;
+    text-align: center;
+    color: #baffba;
+    text-shadow: 0 0 6px #0f0;
+  }
+
+  .dial {
+    margin-top: 30px;
+    width: 120px;
+    height: 120px;
+    border: 4px solid #333;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #666, #222);
+    box-shadow: 0 0 20px #0f0;
+    position: relative;
+    cursor: grab;
+    transition: transform 0.2s;
+  }
+
+  .dial:active {
+    cursor: grabbing;
+  }
+
+  .pointer {
+    position: absolute;
     top: 10px;
     left: 50%;
+    width: 4px;
+    height: 20px;
+    background: #0f0;
     transform: translateX(-50%);
-    border-radius: 3px;
+    border-radius: 2px;
     box-shadow: 0 0 10px #0f0;
   }
-  .mute-btn {
-    margin-top: 10px;
-    background: #033;
-    color: #8ff;
-    border: 1px solid #088;
-    border-radius: 8px;
-    padding: 5px 12px;
-    cursor: pointer;
-  }
-  .credit {
-    font-size: 12px;
-    color: #555;
-    margin-top: 10px;
+
+  .theme-name {
+    margin-top: 15px;
+    color: #9f9;
+    text-shadow: 0 0 5px #0f0;
+    font-size: 1.2em;
   }
 </style>
 </head>
 <body>
-  <h1>Whispers from the Void</h1>
-
-  <div class="radio">
-    <div class="screen" id="screen">Tune the dial...</div>
-    <div class="dial" id="dial"></div>
-    <button id="muteBtn" class="mute-btn">🔇 Mute</button>
-    <div class="credit">Made by BinaryCrow</div>
+  <div class="screen" id="screen">
+    <div class="mist"></div>
+    <div class="static-line"></div>
+    <div id="phrase">Turn the dial to tune into a transmission...</div>
   </div>
 
-  <!-- Base static hum -->
-  <audio id="staticAudio" loop>
-    <source src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_c6d8bdbcc3.mp3?filename=radio-static-6121.mp3" type="audio/mpeg">
-  </audio>
+  <div class="dial" id="dial">
+    <div class="pointer"></div>
+  </div>
+  <div class="theme-name" id="themeName">—</div>
 
 <script>
-const themes = ["Fantasy","Sci-Fi","Spooky","Silly","Superhero","Mashup"];
+const themes = ["Fantasy", "Sci-Fi", "Spooky", "Silly", "Superhero", "Mashup"];
 let currentThemeIndex = 0;
-let isMuted = false;
 
-// Example word banks (replace with your full data)
-const wordBanks = {
-  "Fantasy": {
-    roles: ["Wizard","Knight","Dragon","Elf"],
-    subjects: ["moon","castle","forest","spell"],
-    actions: ["guards","summons","burns","whispers to"],
-    contexts: ["the cursed well","a sleeping god","forgotten ruins","its own reflection"]
+// Banks (simplified for prototype)
+const banks = {
+  Fantasy: {
+    roles: ["Wizard", "Knight", "Fairy", "Goblin"],
+    subjects: ["dragon egg", "enchanted sword", "ancient ruin"],
+    actions: ["guards", "steals", "awakens"],
+    contexts: ["under a blood moon", "in the misty woods", "at dawn"]
   },
-  "Sci-Fi": {
-    roles: ["Android","Pilot","Alien","Scientist"],
-    subjects: ["laser","ship","planet","signal"],
-    actions: ["discovers","hacks","evaporates","befriends"],
-    contexts: ["an ancient satellite","a rogue AI","quantum space","a forgotten clone"]
-  },
-  "Spooky": {
-    roles: ["Ghost","Witch","Skeleton","Haunted Doll"],
-    subjects: ["mirror","crypt","lantern","crow"],
-    actions: ["screeches at","summons","follows","lurks near"],
-    contexts: ["the foggy moor","midnight","a cursed bell","your shadow"]
-  },
-  "Silly": {
-    roles: ["Clown","Hamster","Duck","Grandma"],
-    subjects: ["toaster","marshmallow","banana","tuba"],
-    actions: ["sings to","throws","paints","tickles"],
-    contexts: ["at the supermarket","in space","under the couch","during lunch"]
-  },
-  "Superhero": {
-    roles: ["Hero","Villain","Sidekick","Mutant"],
-    subjects: ["laser eyes","cape","sidecar","gadget"],
-    actions: ["rescues","punches","flies over","argues with"],
-    contexts: ["the moon base","a crowded mall","city hall","an alternate dimension"]
-  },
-  "Mashup": {
-    roles: ["Goblin","Robot","Zombie Pirate","Time Wizard"],
-    subjects: ["spaghetti","flux capacitor","enchanted taco","quantum wand"],
-    actions: ["throws","repairs","enchants","consumes"],
-    contexts: ["inside a volcano","at a rave","in your fridge","beneath the sea"]
+  SciFi: {
+    roles: ["Android", "Pilot", "Scientist", "Alien"],
+    subjects: ["warp drive", "nanobot swarm", "quantum rift"],
+    actions: ["tests", "sabotages", "discovers"],
+    contexts: ["inside a derelict station", "during hyperspace", "on Mars"]
   }
 };
 
-// Dial and screen elements
+// Dial rotation logic
 const dial = document.getElementById("dial");
-const screen = document.getElementById("screen");
-const staticAudio = document.getElementById("staticAudio");
-const muteBtn = document.getElementById("muteBtn");
+const themeName = document.getElementById("themeName");
+const phraseEl = document.getElementById("phrase");
+let isDragging = false;
+let rotation = 0;
 
-if (!isMuted) staticAudio.play().catch(()=>{});
+dial.addEventListener("mousedown", () => isDragging = true);
+window.addEventListener("mouseup", () => isDragging = false);
+window.addEventListener("mousemove", e => {
+  if (!isDragging) return;
+  rotation += e.movementX * 0.5;
+  dial.style.transform = `rotate(${rotation}deg)`;
 
-// 🎵 Add theme audio
-const themeAudio = {
-  "Fantasy": new Audio("https://cdn.pixabay.com/download/audio/2023/02/15/audio_14a96e46b1.mp3?filename=magic-wind-139698.mp3"),
-  "Sci-Fi": new Audio("https://cdn.pixabay.com/download/audio/2022/03/09/audio_c3af76408f.mp3?filename=futuristic-ambience-ambient-loop-153480.mp3"),
-  "Spooky": new Audio("https://cdn.pixabay.com/download/audio/2021/08/04/audio_379c13283a.mp3?filename=horror-background-6100.mp3"),
-  "Silly": new Audio("https://cdn.pixabay.com/download/audio/2022/03/24/audio_b2a25d7b40.mp3?filename=comedy-sneaky-146708.mp3"),
-  "Superhero": new Audio("https://cdn.pixabay.com/download/audio/2022/05/02/audio_2a1a8f4479.mp3?filename=heroic-trailer-110299.mp3"),
-  "Mashup": new Audio("https://cdn.pixabay.com/download/audio/2023/03/30/audio_56c014e3a7.mp3?filename=cosmic-glow-144926.mp3")
-};
-
-for (let key in themeAudio) {
-  themeAudio[key].loop = true;
-  themeAudio[key].volume = 0;
-  themeAudio[key].play().catch(()=>{});
-}
-
-// Smooth audio fade function
-function fadeAudio(target, toVolume, duration = 1000){
-  const stepTime = 50;
-  const steps = duration / stepTime;
-  const delta = (toVolume - target.volume) / steps;
-  let stepCount = 0;
-  const interval = setInterval(()=>{
-    target.volume += delta;
-    stepCount++;
-    if (stepCount >= steps) {
-      target.volume = toVolume;
-      clearInterval(interval);
-    }
-  }, stepTime);
-}
-
-let currentTheme = null;
-
-let rotating = false;
-let startAngle = 0, currentRotation = 0;
-
-dial.addEventListener("mousedown", startRotate);
-dial.addEventListener("touchstart", startRotate);
-
-function startRotate(e){
-  e.preventDefault();
-  rotating = true;
-  startAngle = getAngle(e);
-  document.addEventListener("mousemove", rotate);
-  document.addEventListener("mouseup", stopRotate);
-  document.addEventListener("touchmove", rotate);
-  document.addEventListener("touchend", stopRotate);
-}
-
-function rotate(e){
-  if(!rotating) return;
-  const angle = getAngle(e);
-  const delta = angle - startAngle;
-  dial.style.transform = `rotate(${currentRotation + delta}deg)`;
-}
-
-function stopRotate(e){
-  rotating = false;
-  const angle = getAngle(e);
-  currentRotation += angle - startAngle;
-
-  // snap to nearest theme
-  const step = 360 / themes.length;
-  const snapped = Math.round(currentRotation / step) * step;
-  currentRotation = snapped;
-  dial.style.transform = `rotate(${snapped}deg)`;
-  const index = ((Math.round(snapped / step) % themes.length) + themes.length) % themes.length;
-  const theme = themes[index];
-
-  // Reveal phrase and switch audio
-  if (theme !== currentTheme) {
-    // fade out all
-    for (let key in themeAudio) fadeAudio(themeAudio[key], 0, 800);
-    // fade in new
-    fadeAudio(themeAudio[theme], isMuted ? 0 : 0.5, 1200);
-    currentTheme = theme;
+  const index = Math.floor(((rotation % 360 + 360) % 360) / (360 / themes.length));
+  if (index !== currentThemeIndex) {
+    currentThemeIndex = index;
+    const t = themes[currentThemeIndex];
+    themeName.textContent = t;
+    generatePhrase(t);
   }
+});
 
-  screen.style.opacity = 0.3;
-  setTimeout(()=>{
-    const phrase = generatePhrase(theme);
-    screen.textContent = phrase;
-    screen.style.opacity = 1;
-  }, 1000);
-}
-
-function getAngle(e){
-  const rect = dial.getBoundingClientRect();
-  const cx = rect.left + rect.width/2;
-  const cy = rect.top + rect.height/2;
-  const x = (e.touches ? e.touches[0].clientX : e.clientX) - cx;
-  const y = (e.touches ? e.touches[0].clientY : e.clientY) - cy;
-  return Math.atan2(y, x) * (180/Math.PI);
-}
-
-function generatePhrase(theme){
-  const bank = wordBanks[theme];
+function generatePhrase(theme) {
+  const bank = banks[theme];
+  if (!bank) return;
   const r = rand(bank.roles);
   const s = rand(bank.subjects);
   const a = rand(bank.actions);
   const c = rand(bank.contexts);
-  return `${r} ${s} ${a} ${c}.`;
+  phraseEl.textContent = `${r} ${s} ${a} ${c}`;
 }
 
-function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-
-// mute toggle
-muteBtn.addEventListener("click", ()=>{
-  isMuted = !isMuted;
-  staticAudio.muted = isMuted;
-  for (let key in themeAudio) themeAudio[key].muted = isMuted;
-  muteBtn.textContent = isMuted ? "🔈 Unmute" : "🔇 Mute";
-});
+function rand(arr){return arr[Math.floor(Math.random()*arr.length)]}
 </script>
 </body>
 </html>
