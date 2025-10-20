@@ -5,15 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Mystic Radio Tuner — Static Enhanced</title>
 <style>
-  :root {
-    --screen-glow: 0.6; /* controlled by JS for flicker */
-  }
+  :root { --screen-glow: 0.6; }
 
-  html,body {
-    height:100%;
-    margin:0;
-  }
-
+  html,body { height:100%; margin:0; }
   body {
     margin: 0;
     height: 100vh;
@@ -25,7 +19,7 @@
     font-family: "Courier New", monospace;
     color: #0ff;
     overflow: hidden;
-    touch-action: none; /* Prevent accidental scrolling while dragging */
+    touch-action: none;
   }
 
   .screen {
@@ -43,10 +37,8 @@
     position: relative;
     overflow: hidden;
     border-radius: 8px;
-    backface-visibility: hidden;
   }
 
-  /* Canvas overlays inside screen (static + scanline) */
   .screen-canvas,
   .scanline {
     position: absolute;
@@ -54,20 +46,21 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
-    display:block;
   }
 
-  /* scanline bar (CSS approach) */
+  .screen-canvas {
+    opacity: 1;
+    transition: opacity 0.8s ease;
+  }
+
   .scanline {
     mix-blend-mode: screen;
-    background: linear-gradient(
-      to bottom,
+    background: linear-gradient(to bottom,
       rgba(255,255,255,0) 0%,
       rgba(255,255,255,0.06) 45%,
       rgba(255,255,255,0.25) 50%,
       rgba(255,255,255,0.06) 55%,
-      rgba(255,255,255,0) 100%
-    );
+      rgba(255,255,255,0) 100%);
     opacity: 0.035;
     transform: translateY(-120%);
     animation: scan 8s linear infinite;
@@ -78,7 +71,6 @@
     100% { transform: translateY(120%); }
   }
 
-  /* subtle flicker overlay to vary brightness */
   .flickerOverlay {
     position:absolute;
     inset:0;
@@ -86,11 +78,10 @@
     background: radial-gradient(ellipse at center, rgba(255,255,255,0.02), rgba(255,255,255,0));
     mix-blend-mode: screen;
     opacity: 0.5;
-    transform: translateZ(0);
   }
 
   .screen .content {
-    position: relative; /* above canvases */
+    position: relative;
     z-index: 5;
     padding: 8px 12px;
     width:100%;
@@ -100,9 +91,7 @@
     justify-content:center;
   }
 
-  .static {
-    animation: staticText 0.15s steps(5) 12;
-  }
+  .static { animation: staticText 0.15s steps(5) 12; }
   @keyframes staticText {
     0%,100% { opacity: 1; filter: blur(0); }
     25% { opacity: 0.3; filter: blur(2px); }
@@ -110,29 +99,16 @@
     75% { opacity: 0.6; filter: blur(3px); }
   }
 
-  /* Character-level animation */
-  .assembled {
-    display:inline-block;
-    white-space:pre-wrap;
-    letter-spacing:0.02em;
-    font-variant-numeric: tabular-nums;
-  }
+  .assembled { display:inline-block; white-space:pre-wrap; letter-spacing:0.02em; }
   .assembled .char {
     display:inline-block;
     opacity:0;
     transform: translateY(6px);
     filter: blur(6px);
     transition: opacity 220ms linear, transform 260ms cubic-bezier(.2,.9,.2,1), filter 220ms linear;
-    will-change: opacity, transform, filter;
     text-shadow: 0 0 6px rgba(0,255,255,0.15), 0 0 12px rgba(0,255,255,0.04);
   }
-  .assembled .char.locked {
-    opacity:1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-
-  /* small transient glitch flicker per char */
+  .assembled .char.locked { opacity:1; transform: translateY(0); filter: blur(0); }
   .assembled .char.glitch {
     animation: charGlitch 180ms steps(2, end) 1;
     filter: blur(2px);
@@ -144,7 +120,6 @@
     100% { transform: translateY(0) skewX(0deg); opacity:1; filter: blur(0); }
   }
 
-  /* dial (unchanged mostly) */
   .dial {
     width: min(40vw, 160px);
     height: min(40vw, 160px);
@@ -155,7 +130,7 @@
     position: relative;
     box-shadow: 0 0 30px rgba(0,255,255,0.12) inset;
     cursor: grab;
-    touch-action: none; /* Prevent scrolling when rotating */
+    touch-action: none;
   }
 
   .pointer {
@@ -178,7 +153,6 @@
     filter: blur(100px);
     animation: drift 20s linear infinite alternate;
     z-index: 0;
-    pointer-events: none;
   }
 
   @keyframes drift {
@@ -186,7 +160,6 @@
     to { transform: translateX(5vw) translateY(3vh); }
   }
 
-  /* responsive tweaks */
   @media (max-width: 600px) {
     .screen { width:90vw; height:28vw; font-size: clamp(0.9em, 3vw, 1.1em); }
     .dial { width:45vw; height:45vw; margin-top:10vh; }
@@ -201,14 +174,9 @@
   <div class="mist"></div>
 
   <div class="screen" id="screen">
-    <!-- static canvas sits under content -->
-    <canvas class="screen-canvas" id="staticCanvas" aria-hidden="true"></canvas>
-    <!-- scanline bar -->
-    <div class="scanline" aria-hidden="true"></div>
-    <!-- small overlay for flicker -->
-    <div class="flickerOverlay" aria-hidden="true"></div>
-
-    <!-- visible content sits above canvases -->
+    <canvas class="screen-canvas" id="staticCanvas"></canvas>
+    <div class="scanline"></div>
+    <div class="flickerOverlay"></div>
     <div class="content" id="screenContent">~ tuning ~</div>
   </div>
 
@@ -217,19 +185,13 @@
   </div>
 
 <script>
-/* ---------------------------
-  Existing UI / interaction code
-   - preserved from the last working version
----------------------------*/
 const screen = document.getElementById('screen');
 const screenContent = document.getElementById('screenContent');
 const dial = document.getElementById('dial');
 const pointer = document.getElementById('pointer');
+const staticCanvas = document.getElementById('staticCanvas');
 
-let currentAngle = 0;
-let dragging = false;
-let lastAngle = 0;
-let lastChannel = -1;
+let currentAngle = 0, dragging = false, lastAngle = 0, lastChannel = -1;
 
 const channels = [
   { name: "Goblin Frequencies", generator: goblinPrompt },
@@ -264,268 +226,173 @@ function voidPrompt() {
   const nonsense = ["⧫ ░ø∆Ψ∴ whispers ∵ Ψ∆ø░ ⧫", "The void hums, slightly off-key.", "Untranslatable frequencies detected..."];
   return rand(nonsense);
 }
-function rand(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function rand(arr){return arr[Math.floor(Math.random()*arr.length)];}
 
-function angleFromEvent(e) {
+/* --- Dial input with touch + mouse --- */
+function angleFromEvent(e){
   const rect = dial.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
   const clientX = e.touches ? e.touches[0].clientX : e.clientX;
   const clientY = e.touches ? e.touches[0].clientY : e.clientY;
   const dx = clientX - cx;
   const dy = clientY - cy;
-  return Math.atan2(dy, dx) * 180 / Math.PI;
+  return Math.atan2(dy, dx)*180/Math.PI;
 }
 
 dial.addEventListener('mousedown', startDrag);
 dial.addEventListener('touchstart', startDrag, { passive: true });
-
 document.addEventListener('mouseup', endDrag);
 document.addEventListener('touchend', endDrag);
-
 document.addEventListener('mousemove', drag);
 document.addEventListener('touchmove', drag, { passive: true });
 
-function startDrag(e) {
-  dragging = true;
-  lastAngle = angleFromEvent(e);
-  dial.style.cursor = 'grabbing';
-}
-function endDrag() {
-  dragging = false;
-  dial.style.cursor = 'grab';
-}
-function drag(e) {
-  if (!dragging) return;
-  const newAngle = angleFromEvent(e);
-  const delta = newAngle - lastAngle;
-  currentAngle = (currentAngle + delta) % 360;
-  lastAngle = newAngle;
-  pointer.style.transform = `rotate(${currentAngle}deg)`;
+function startDrag(e){ dragging=true; lastAngle=angleFromEvent(e); dial.style.cursor='grabbing'; }
+function endDrag(){ dragging=false; dial.style.cursor='grab'; }
+function drag(e){
+  if(!dragging) return;
+  const newAngle=angleFromEvent(e);
+  const delta=newAngle-lastAngle;
+  currentAngle=(currentAngle+delta)%360;
+  lastAngle=newAngle;
+  pointer.style.transform=`rotate(${currentAngle}deg)`;
   checkChannel();
 }
-function checkChannel() {
+
+/* --- Channel switching --- */
+function checkChannel(){
   const segmentSize = 360 / channels.length;
   let channelIndex = Math.floor((currentAngle + 360) % 360 / segmentSize);
   if (channelIndex !== lastChannel) {
     lastChannel = channelIndex;
     const channel = channels[channelIndex];
+    fadeInStatic(); // static ON
     showStatic(channel.name);
-    // assembly animation will show final phrase after short delay
     setTimeout(()=> displayPhrase(channel.generator()), 600);
   }
 }
-function showStatic(label) {
-  // briefly display label as plain text before assembly for immediate feedback
+function showStatic(label){
   screenContent.textContent = `~ ${label} ~`;
   screenContent.classList.add('static');
   setTimeout(()=> screenContent.classList.remove('static'), 400);
 }
 
-/* ---------------------------
-  Static canvas implementation
-  - small internal resolution scaled to fill screen for pixelated noise
-  - updates via requestAnimationFrame
----------------------------*/
-const staticCanvas = document.getElementById('staticCanvas');
-const staticCtx = staticCanvas.getContext('2d', { willReadFrequently: false });
-
-function setupStaticCanvas() {
+/* --- Static Canvas --- */
+const ctx = staticCanvas.getContext('2d');
+function setupStaticCanvas(){
   const rect = staticCanvas.getBoundingClientRect();
-  // target small internal resolution for performance (pixelated static)
-  const scale = Math.max(1, window.devicePixelRatio || 1);
-  // choose internal pixel grid based on screen size but small for performance
-  const internalW = Math.max(80, Math.floor(rect.width / 6));
-  const internalH = Math.max(40, Math.floor(rect.height / 6));
-  staticCanvas.width = internalW * scale;
-  staticCanvas.height = internalH * scale;
-  staticCanvas.style.width = rect.width + "px";
-  staticCanvas.style.height = rect.height + "px";
-  staticCtx.setTransform(scale,0,0,scale,0,0);
-  // make image crisp upscaled (pixelated)
-  staticCtx.imageSmoothingEnabled = false;
+  const scale = Math.max(1, window.devicePixelRatio||1);
+  const internalW = Math.max(80, Math.floor(rect.width/6));
+  const internalH = Math.max(40, Math.floor(rect.height/6));
+  staticCanvas.width = internalW*scale;
+  staticCanvas.height = internalH*scale;
+  ctx.setTransform(scale,0,0,scale,0,0);
+  ctx.imageSmoothingEnabled = false;
 }
-function drawStatic() {
-  const w = staticCanvas.width / (window.devicePixelRatio||1);
-  const h = staticCanvas.height / (window.devicePixelRatio||1);
-
-  // create ImageData and fill few random pixels per frame
-  const density = Math.min(0.04, 0.02 + (Math.random()*0.02)); // fraction of pixels that flash each frame
-  const pxToSet = Math.floor(w*h*density);
-
-  // Instead of clearing entire canvas each frame, slightly fade previous frame to create persistence
-  staticCtx.fillStyle = 'rgba(0,0,0,0.08)';
-  staticCtx.fillRect(0,0,w,h);
-
-  for (let i=0;i<pxToSet;i++) {
-    const x = Math.floor(Math.random()*w);
-    const y = Math.floor(Math.random()*h);
-    // choose intensity (mostly dim, occasional bright)
-    const v = Math.random() < 0.06 ? 255 : (120 + Math.floor(Math.random()*120));
-    staticCtx.fillStyle = `rgba(${v},${v},${v},${0.9*Math.random()})`;
-    staticCtx.fillRect(x, y, 1, 1);
+function drawStatic(){
+  const w = staticCanvas.width/(window.devicePixelRatio||1);
+  const h = staticCanvas.height/(window.devicePixelRatio||1);
+  ctx.fillStyle='rgba(0,0,0,0.08)';
+  ctx.fillRect(0,0,w,h);
+  const density=0.03;
+  const pxToSet=Math.floor(w*h*density);
+  for(let i=0;i<pxToSet;i++){
+    const x=Math.floor(Math.random()*w);
+    const y=Math.floor(Math.random()*h);
+    const v=Math.random()<0.06?255:(120+Math.floor(Math.random()*120));
+    ctx.fillStyle=`rgba(${v},${v},${v},${0.9*Math.random()})`;
+    ctx.fillRect(x,y,1,1);
   }
-
-  // occasional brighter bursts
-  if (Math.random() < 0.01) {
-    const bx = Math.floor(Math.random()*w);
-    const by = Math.floor(Math.random()*h);
-    staticCtx.fillStyle = 'rgba(255,255,255,0.18)';
-    staticCtx.fillRect(bx, by, 2, 2);
-  }
-  // add faint global tint (cyan) to blend with screen
-  staticCtx.globalCompositeOperation = 'lighter';
-  staticCtx.fillStyle = 'rgba(0,255,255,0.002)';
-  staticCtx.fillRect(0,0,w,h);
-  staticCtx.globalCompositeOperation = 'source-over';
-  // schedule next
-  staticRAF = requestAnimationFrame(drawStatic);
+  ctx.globalCompositeOperation='lighter';
+  ctx.fillStyle='rgba(0,255,255,0.002)';
+  ctx.fillRect(0,0,w,h);
+  ctx.globalCompositeOperation='source-over';
+  staticRAF=requestAnimationFrame(drawStatic);
 }
-let staticRAF = null;
+let staticRAF=null;
 
-/* ---------------------------
-  Flickering glow (CRT unstable)
-  - small random modulation of CSS var --screen-glow
----------------------------*/
-let flickerTimer = null;
-function startFlicker() {
-  function tick() {
-    // vary between 0.45 and 1.1, with occasional spikes
-    const base = 0.55 + Math.random() * 0.5;
-    const spike = Math.random() < 0.025 ? (1 + Math.random()*1.5) : 1;
-    const val = Math.min(1.6, base * spike);
-    document.documentElement.style.setProperty('--screen-glow', val.toFixed(3));
-    // also vary the overlay opacity randomly to make the face shimmer
-    const overlay = document.querySelector('.flickerOverlay');
-    if (overlay) overlay.style.opacity = (0.25 + Math.random()*0.45).toString();
-    // vary interval slightly for natural effect
-    const next = 120 + Math.random()*420;
-    flickerTimer = setTimeout(tick, next);
+/* --- Static fade in/out --- */
+function fadeOutStatic(){ staticCanvas.style.opacity = 0; }
+function fadeInStatic(){ staticCanvas.style.opacity = 1; }
+
+/* --- Flicker Glow --- */
+let flickerTimer=null;
+function startFlicker(){
+  function tick(){
+    const val = (0.55+Math.random()*0.5).toFixed(3);
+    document.documentElement.style.setProperty('--screen-glow', val);
+    const overlay=document.querySelector('.flickerOverlay');
+    if(overlay) overlay.style.opacity=(0.25+Math.random()*0.45).toString();
+    flickerTimer=setTimeout(tick, 120+Math.random()*420);
   }
   tick();
 }
-function stopFlicker() {
-  clearTimeout(flickerTimer);
-  document.documentElement.style.setProperty('--screen-glow', '0.6');
-}
+function stopFlicker(){ clearTimeout(flickerTimer); }
 
-/* ---------------------------
-  Text assembly-through-static
-  - splits phrase into characters
-  - animates letters appearing in a random order
-  - each char glows/locks into place
----------------------------*/
-function displayPhrase(text) {
-  // clear any ongoing char reveals
-  if (window._charRevealTimers) {
-    window._charRevealTimers.forEach(t => clearTimeout(t));
-  }
-  window._charRevealTimers = [];
-
-  // make container element
-  screenContent.innerHTML = '';
-  const container = document.createElement('div');
-  container.className = 'assembled';
+/* --- Text Assembly --- */
+function displayPhrase(text){
+  if(window._charRevealTimers){ window._charRevealTimers.forEach(t=>clearTimeout(t)); }
+  window._charRevealTimers=[];
+  screenContent.innerHTML='';
+  const container=document.createElement('div');
+  container.className='assembled';
   screenContent.appendChild(container);
 
-  // create spans for every character (preserve spaces)
-  const chars = Array.from(text);
-  chars.forEach(ch => {
-    const span = document.createElement('span');
-    span.className = 'char';
-    span.textContent = ch === ' ' ? '\u00A0' : ch;
+  const chars=Array.from(text);
+  chars.forEach(ch=>{
+    const span=document.createElement('span');
+    span.className='char';
+    span.textContent=ch===' '?' ':ch;
     container.appendChild(span);
   });
 
-  // generate a reveal order: random but favor longer strings spread
-  const indices = chars.map((_,i)=>i);
-  shuffle(indices);
-
-  // reveal characters in sequence with small jitter
-  const baseDelay = 80; // ms per reveal
-  indices.forEach((idx, order) => {
-    const t = setTimeout(()=>{
-      const span = container.children[idx];
-      // apply small glitch class briefly
+  const indices=chars.map((_,i)=>i); shuffle(indices);
+  const baseDelay=80;
+  indices.forEach((idx,order)=>{
+    const t=setTimeout(()=>{
+      const span=container.children[idx];
       span.classList.add('glitch');
-      // after tiny moment, lock the char
       setTimeout(()=>{
         span.classList.remove('glitch');
         span.classList.add('locked');
-      }, 120 + Math.random()*160);
-    }, order * baseDelay + Math.random()*80);
+      },120+Math.random()*160);
+    },order*baseDelay+Math.random()*80);
     window._charRevealTimers.push(t);
   });
 
-  // occasional micro-flicker of entire phrase (simulate signal wobble)
-  const flickerLoop = () => {
-    // small random blurs applied transiently to some characters
-    for (let i=0;i<Math.min(3, chars.length); i++) {
-      const j = Math.floor(Math.random()*chars.length);
-      const s = container.children[j];
-      if (!s) continue;
+  // fade static out when animation mostly complete
+  const totalDuration = indices.length * baseDelay + 400;
+  setTimeout(() => fadeOutStatic(), totalDuration);
+
+  // light flicker loop
+  const flickerLoop=()=>{
+    for(let i=0;i<Math.min(3,chars.length);i++){
+      const j=Math.floor(Math.random()*chars.length);
+      const s=container.children[j];
+      if(!s) continue;
       s.classList.add('glitch');
-      setTimeout(()=> s.classList.remove('glitch'), 120 + Math.random()*140);
+      setTimeout(()=>s.classList.remove('glitch'),120+Math.random()*140);
     }
-    // schedule next small flicker while text is revealing
-    if (window._charRevealTimers && window._charRevealTimers.length > 0) {
-      setTimeout(flickerLoop, 250 + Math.random()*500);
+    if(window._charRevealTimers && window._charRevealTimers.length>0){
+      setTimeout(flickerLoop,250+Math.random()*500);
     }
   };
   flickerLoop();
 }
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
-/* small helper to shuffle array */
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-
-/* ---------------------------
-  Lifecycle: start/stop static when screen size changes
----------------------------*/
-function initOverlays() {
-  // resize static canvas to screen size
-  const rect = screen.getBoundingClientRect();
-  staticCanvas.style.width = rect.width + 'px';
-  staticCanvas.style.height = rect.height + 'px';
+/* --- Init --- */
+function initOverlays(){
   setupStaticCanvas();
-
-  // kick off draw loop
-  if (!staticRAF) staticRAF = requestAnimationFrame(drawStatic);
-
-  // start flicker
+  if(!staticRAF) staticRAF=requestAnimationFrame(drawStatic);
   startFlicker();
 }
-window.addEventListener('resize', () => {
-  // cancel RAF and restart on next frame for smooth resize
-  if (staticRAF) cancelAnimationFrame(staticRAF);
-  staticRAF = null;
-  // small debounce
-  clearTimeout(window._resizeTimer);
-  window._resizeTimer = setTimeout(initOverlays, 120);
-});
-window.addEventListener('orientationchange', () => {
-  clearTimeout(window._resizeTimer);
-  window._resizeTimer = setTimeout(initOverlays, 180);
-});
+window.addEventListener('resize',()=>{if(staticRAF)cancelAnimationFrame(staticRAF);staticRAF=null;clearTimeout(window._resizeTimer);window._resizeTimer=setTimeout(initOverlays,120);});
+window.addEventListener('orientationchange',()=>{clearTimeout(window._resizeTimer);window._resizeTimer=setTimeout(initOverlays,180);});
 
-// initialize now
 initOverlays();
-
-/* ensure initial content uses assembly animation for initial phrase */
-setTimeout(()=> displayPhrase('~ tuning ~'), 300);
-
-/* cleanup on unload */
-window.addEventListener('beforeunload', ()=>{
-  if (staticRAF) cancelAnimationFrame(staticRAF);
-  stopFlicker();
-});
-
-/* --- End of new overlay + text assembly code --- */
+setTimeout(()=>displayPhrase('~ tuning ~'),300);
+window.addEventListener('beforeunload',()=>{if(staticRAF)cancelAnimationFrame(staticRAF);stopFlicker();});
 </script>
 </body>
 </html>
