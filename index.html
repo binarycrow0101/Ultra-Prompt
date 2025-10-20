@@ -1,95 +1,162 @@
-<script>
-const themes = ["Fantasy", "Sci-Fi", "Spooky", "Silly", "Superhero", "Mashup"];
-let currentThemeIndex = -1;
-
-// Word banks (trimmed for clarity)
-const banks = {
-  Fantasy: {
-    roles: ["Wizard", "Knight", "Fairy", "Goblin"],
-    subjects: ["dragon egg", "enchanted sword", "ancient ruin"],
-    actions: ["guards", "steals", "awakens"],
-    contexts: ["under a blood moon", "in the misty woods", "at dawn"]
-  },
-  SciFi: {
-    roles: ["Android", "Pilot", "Scientist", "Alien"],
-    subjects: ["warp drive", "nanobot swarm", "quantum rift"],
-    actions: ["tests", "sabotages", "discovers"],
-    contexts: ["inside a derelict station", "during hyperspace", "on Mars"]
-  },
-  Spooky: {
-    roles: ["Ghost", "Gravedigger", "Witch", "Doll"],
-    subjects: ["mirror", "lantern", "tomb", "curse"],
-    actions: ["haunts", "screams at", "possesses"],
-    contexts: ["in a thunderstorm", "at midnight", "beneath the church"]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whispers from the Void</title>
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    background: radial-gradient(circle at center, #050505 30%, #000 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: "Courier New", monospace;
+    color: #0ff;
+    overflow: hidden;
   }
-};
 
-const dial = document.getElementById("dial");
-const phraseEl = document.getElementById("phrase");
-const themeName = document.getElementById("themeName");
+  /* Screen container */
+  .screen {
+    width: 400px;
+    height: 150px;
+    background: #001;
+    border: 3px solid #0ff5;
+    box-shadow: 0 0 30px #0ff2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0ff;
+    font-size: 1.2em;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
 
-let isDragging = false;
+  /* Static flicker effect */
+  .screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      rgba(255,255,255,0.03) 0px,
+      rgba(255,255,255,0.03) 2px,
+      rgba(0,0,0,0.05) 3px
+    );
+    animation: flicker 0.2s infinite;
+    pointer-events: none;
+  }
+
+  @keyframes flicker {
+    0%,100% { opacity: 0.8; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Dial */
+  .dial {
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, #222 0%, #000 90%);
+    border: 4px solid #0ff5;
+    border-radius: 50%;
+    margin-top: 40px;
+    position: relative;
+    box-shadow: 0 0 30px #0ff2 inset;
+    cursor: grab;
+  }
+
+  .pointer {
+    position: absolute;
+    width: 4px;
+    height: 40px;
+    background: #0ff;
+    top: 20px;
+    left: calc(50% - 2px);
+    border-radius: 2px;
+    transform-origin: bottom center;
+  }
+
+  .static {
+    animation: staticText 0.15s steps(5) 10;
+  }
+
+  @keyframes staticText {
+    0%,100% { opacity: 1; filter: blur(0); }
+    25% { opacity: 0.3; filter: blur(2px); }
+    50% { opacity: 1; filter: blur(1px); }
+    75% { opacity: 0.6; filter: blur(3px); }
+  }
+</style>
+</head>
+<body>
+  <div class="screen" id="screen">~ tune in ~</div>
+  <div class="dial" id="dial">
+    <div class="pointer" id="pointer"></div>
+  </div>
+
+<script>
+const screen = document.getElementById('screen');
+const dial = document.getElementById('dial');
+const pointer = document.getElementById('pointer');
+
 let currentAngle = 0;
+let dragging = false;
+let lastAngle = 0;
 
-dial.addEventListener("mousedown", startDrag);
-window.addEventListener("mouseup", stopDrag);
-window.addEventListener("mousemove", rotateDial);
-dial.addEventListener("touchstart", e => startDrag(e.touches[0]));
-window.addEventListener("touchmove", e => rotateDial(e.touches[0]));
-window.addEventListener("touchend", stopDrag);
-
-function startDrag(e) { isDragging = true; updateAngle(e); }
-function stopDrag() { isDragging = false; }
-
-function rotateDial(e) {
-  if (!isDragging) return;
-  updateAngle(e);
+// Simple phrase generator (use your real one later)
+function generatePhrase() {
+  const roles = ["Goblin", "Wizard", "Knight", "Merchant", "Beast"];
+  const subjects = ["Mushroom", "Storm", "Crown", "Mirror", "Tavern"];
+  const actions = ["whispers to", "steals from", "trades with", "hides from", "summons"];
+  const contexts = ["the void", "a forgotten king", "the moonlight", "a sleeping god", "their own reflection"];
+  return `${roles[Math.floor(Math.random()*roles.length)]} ${subjects[Math.floor(Math.random()*subjects.length)]} ${actions[Math.floor(Math.random()*actions.length)]} ${contexts[Math.floor(Math.random()*contexts.length)]}`;
 }
 
-function updateAngle(e) {
+// ---- DIAL INTERACTION ----
+function angleFromEvent(e) {
   const rect = dial.getBoundingClientRect();
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
   const dx = e.clientX - cx;
   const dy = e.clientY - cy;
-  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-  currentAngle = (angle + 450) % 360; // normalize
-  dial.style.transform = `rotate(${currentAngle}deg)`;
+  return Math.atan2(dy, dx) * 180 / Math.PI;
+}
 
-  const index = Math.floor(currentAngle / (360 / themes.length));
-  if (index !== currentThemeIndex) {
-    currentThemeIndex = index;
-    const t = themes[currentThemeIndex];
-    themeName.textContent = t;
-    generatePhrase(t);
-    dial.classList.add("snap");
-    setTimeout(()=>dial.classList.remove("snap"),150);
+dial.addEventListener('mousedown', (e)=>{
+  dragging = true;
+  lastAngle = angleFromEvent(e);
+  dial.style.cursor = 'grabbing';
+});
+
+document.addEventListener('mouseup', ()=>{
+  dragging = false;
+  dial.style.cursor = 'grab';
+});
+
+document.addEventListener('mousemove', (e)=>{
+  if(!dragging) return;
+  const newAngle = angleFromEvent(e);
+  const delta = newAngle - lastAngle;
+  currentAngle = (currentAngle + delta) % 360;
+  lastAngle = newAngle;
+  pointer.style.transform = `rotate(${currentAngle}deg)`;
+
+  // interpret dial angle as "frequency band"
+  const frequency = Math.abs(currentAngle % 360);
+  if (frequency > 300 && frequency < 320) {
+    displayPhrase(generatePhrase());
   }
-}
+});
 
-// — Phrase assembly effect —
-function generatePhrase(theme) {
-  const bank = banks[theme];
-  if (!bank) return;
-  const phrase = `${rand(bank.roles)} ${rand(bank.subjects)} ${rand(bank.actions)} ${rand(bank.contexts)}`;
-  glitchText(phrase);
-}
-
-function rand(arr){return arr[Math.floor(Math.random()*arr.length)]}
-
-function glitchText(fullText) {
-  const chars = "!@#$%^&*()_+=-?<>~◊░▒▓█";
-  let display = Array(fullText.length).fill(" ");
-  phraseEl.textContent = "";
-  let progress = 0;
-  const interval = setInterval(()=>{
-    for (let i=0; i<fullText.length; i++) {
-      if (Math.random() < progress / fullText.length) display[i] = fullText[i];
-      else display[i] = chars[Math.floor(Math.random() * chars.length)];
-    }
-    phraseEl.textContent = display.join("");
-    progress++;
-    if (progress > fullText.length + 5) clearInterval(interval);
-  }, 40);
+function displayPhrase(text) {
+  screen.textContent = "";
+  const span = document.createElement('span');
+  span.textContent = text;
+  span.classList.add('static');
+  screen.appendChild(span);
 }
 </script>
+</body>
+</html>
