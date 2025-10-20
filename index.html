@@ -99,6 +99,7 @@
     <div class="credit">Made by BinaryCrow</div>
   </div>
 
+  <!-- Base static hum -->
   <audio id="staticAudio" loop>
     <source src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_c6d8bdbcc3.mp3?filename=radio-static-6121.mp3" type="audio/mpeg">
   </audio>
@@ -108,7 +109,7 @@ const themes = ["Fantasy","Sci-Fi","Spooky","Silly","Superhero","Mashup"];
 let currentThemeIndex = 0;
 let isMuted = false;
 
-// Example banks — replace with your real ones
+// Example word banks (replace with your full data)
 const wordBanks = {
   "Fantasy": {
     roles: ["Wizard","Knight","Dragon","Elf"],
@@ -148,13 +149,47 @@ const wordBanks = {
   }
 };
 
-// Dial logic
+// Dial and screen elements
 const dial = document.getElementById("dial");
 const screen = document.getElementById("screen");
 const staticAudio = document.getElementById("staticAudio");
 const muteBtn = document.getElementById("muteBtn");
 
 if (!isMuted) staticAudio.play().catch(()=>{});
+
+// 🎵 Add theme audio
+const themeAudio = {
+  "Fantasy": new Audio("https://cdn.pixabay.com/download/audio/2023/02/15/audio_14a96e46b1.mp3?filename=magic-wind-139698.mp3"),
+  "Sci-Fi": new Audio("https://cdn.pixabay.com/download/audio/2022/03/09/audio_c3af76408f.mp3?filename=futuristic-ambience-ambient-loop-153480.mp3"),
+  "Spooky": new Audio("https://cdn.pixabay.com/download/audio/2021/08/04/audio_379c13283a.mp3?filename=horror-background-6100.mp3"),
+  "Silly": new Audio("https://cdn.pixabay.com/download/audio/2022/03/24/audio_b2a25d7b40.mp3?filename=comedy-sneaky-146708.mp3"),
+  "Superhero": new Audio("https://cdn.pixabay.com/download/audio/2022/05/02/audio_2a1a8f4479.mp3?filename=heroic-trailer-110299.mp3"),
+  "Mashup": new Audio("https://cdn.pixabay.com/download/audio/2023/03/30/audio_56c014e3a7.mp3?filename=cosmic-glow-144926.mp3")
+};
+
+for (let key in themeAudio) {
+  themeAudio[key].loop = true;
+  themeAudio[key].volume = 0;
+  themeAudio[key].play().catch(()=>{});
+}
+
+// Smooth audio fade function
+function fadeAudio(target, toVolume, duration = 1000){
+  const stepTime = 50;
+  const steps = duration / stepTime;
+  const delta = (toVolume - target.volume) / steps;
+  let stepCount = 0;
+  const interval = setInterval(()=>{
+    target.volume += delta;
+    stepCount++;
+    if (stepCount >= steps) {
+      target.volume = toVolume;
+      clearInterval(interval);
+    }
+  }, stepTime);
+}
+
+let currentTheme = null;
 
 let rotating = false;
 let startAngle = 0, currentRotation = 0;
@@ -189,12 +224,21 @@ function stopRotate(e){
   const snapped = Math.round(currentRotation / step) * step;
   currentRotation = snapped;
   dial.style.transform = `rotate(${snapped}deg)`;
-  currentThemeIndex = ((Math.round(snapped / step) % themes.length) + themes.length) % themes.length;
+  const index = ((Math.round(snapped / step) % themes.length) + themes.length) % themes.length;
+  const theme = themes[index];
 
-  // reveal phrase after tuning delay
+  // Reveal phrase and switch audio
+  if (theme !== currentTheme) {
+    // fade out all
+    for (let key in themeAudio) fadeAudio(themeAudio[key], 0, 800);
+    // fade in new
+    fadeAudio(themeAudio[theme], isMuted ? 0 : 0.5, 1200);
+    currentTheme = theme;
+  }
+
   screen.style.opacity = 0.3;
   setTimeout(()=>{
-    const phrase = generatePhrase(themes[currentThemeIndex]);
+    const phrase = generatePhrase(theme);
     screen.textContent = phrase;
     screen.style.opacity = 1;
   }, 1000);
@@ -224,6 +268,7 @@ function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 muteBtn.addEventListener("click", ()=>{
   isMuted = !isMuted;
   staticAudio.muted = isMuted;
+  for (let key in themeAudio) themeAudio[key].muted = isMuted;
   muteBtn.textContent = isMuted ? "🔈 Unmute" : "🔇 Mute";
 });
 </script>
