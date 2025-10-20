@@ -16,6 +16,7 @@
     font-family: "Courier New", monospace;
     color: #0ff;
     overflow: hidden;
+    touch-action: none; /* Prevent accidental scrolling while dragging */
   }
 
   .screen {
@@ -62,6 +63,7 @@
     position: relative;
     box-shadow: 0 0 30px #0ff2 inset;
     cursor: grab;
+    touch-action: none; /* Prevent scrolling when rotating */
   }
 
   .pointer {
@@ -130,37 +132,31 @@ const channels = [
 ];
 
 // ---- Prompt Generators ----
-
 function goblinPrompt() {
   const goblins = ["Grib", "Snort", "Mog", "Kreeg", "Thistle", "Fungrot"];
   const actions = ["ate", "bargained with", "stole from", "sang to", "was cursed by"];
   const objects = ["a glowing rat", "the moon's toenail", "a bucket of screams", "a noble sock"];
-  return `${rand(goblins)} ${actions[Math.floor(Math.random()*actions.length)]} ${objects[Math.floor(Math.random()*objects.length)]}.`;
+  return `${rand(goblins)} ${rand(actions)} ${rand(objects)}.`;
 }
-
 function dreamPrompt() {
   const moods = ["a glass cloud", "the scent of thunder", "a whisper-shaped candle", "a thought that forgot itself"];
   return `You dreamt of ${rand(moods)}.`;
 }
-
 function mashupPrompt() {
   const roles = ["Knight", "DJ", "Goblin", "Astrologer", "Beekeeper"];
   const subjects = ["Vampire", "Robot", "Chef", "Detective", "Witch"];
   const places = ["in Space", "in a Dungeon", "at a Tea Party", "during Apocalypse", "underwater"];
   return `${rand(roles)} vs ${rand(subjects)} ${rand(places)}.`;
 }
-
 function folklorePrompt() {
   const beings = ["The Hollow Piper", "The Candle Mare", "The Mirror Child", "The Bleeding Oak"];
   const phrases = ["walks when no one watches", "sings through keyholes", "feeds on reflected light", "collects forgotten birthdays"];
   return `${rand(beings)} ${rand(phrases)}.`;
 }
-
 function voidPrompt() {
   const nonsense = ["⧫ ░ø∆Ψ∴ whispers ∵ Ψ∆ø░ ⧫", "The void hums, slightly off-key.", "Untranslatable frequencies detected..."];
   return rand(nonsense);
 }
-
 function rand(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
 
 // ---- DIAL INTERACTION ----
@@ -169,32 +165,43 @@ function angleFromEvent(e) {
   const rect = dial.getBoundingClientRect();
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
-  const dx = e.clientX - cx;
-  const dy = e.clientY - cy;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const dx = clientX - cx;
+  const dy = clientY - cy;
   return Math.atan2(dy, dx) * 180 / Math.PI;
 }
 
-dial.addEventListener('mousedown', (e)=>{
+// Unified handlers for mouse + touch
+dial.addEventListener('mousedown', startDrag);
+dial.addEventListener('touchstart', startDrag, { passive: true });
+
+document.addEventListener('mouseup', endDrag);
+document.addEventListener('touchend', endDrag);
+
+document.addEventListener('mousemove', drag);
+document.addEventListener('touchmove', drag, { passive: true });
+
+function startDrag(e) {
   dragging = true;
   lastAngle = angleFromEvent(e);
   dial.style.cursor = 'grabbing';
-});
+}
 
-document.addEventListener('mouseup', ()=>{
+function endDrag() {
   dragging = false;
   dial.style.cursor = 'grab';
-});
+}
 
-document.addEventListener('mousemove', (e)=>{
-  if(!dragging) return;
+function drag(e) {
+  if (!dragging) return;
   const newAngle = angleFromEvent(e);
   const delta = newAngle - lastAngle;
   currentAngle = (currentAngle + delta) % 360;
   lastAngle = newAngle;
   pointer.style.transform = `rotate(${currentAngle}deg)`;
-
   checkChannel();
-});
+}
 
 function checkChannel() {
   const segmentSize = 360 / channels.length;
