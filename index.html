@@ -1,144 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Whispers from the Void</title>
-<style>
-  body {
-    margin: 0;
-    background: radial-gradient(circle at center, #000 60%, #010105);
-    color: #c0ffc0;
-    font-family: 'Courier New', monospace;
-    overflow: hidden;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .screen {
-    position: relative;
-    width: 90%;
-    max-width: 500px;
-    height: 220px;
-    background: rgba(10,20,10,0.8);
-    border: 3px solid #3f3;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 0 20px #3f3;
-  }
-
-  /* Static lines */
-  .static-line {
-    position: absolute;
-    width: 100%;
-    height: 2px;
-    background: rgba(255,255,255,0.1);
-    animation: staticMove 1s linear infinite;
-  }
-
-  @keyframes staticMove {
-    0% { top: 0; }
-    100% { top: 100%; }
-  }
-
-  /* Mist particles */
-  .mist {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, rgba(100,255,100,0.03) 0%, transparent 80%);
-    animation: drift 8s linear infinite;
-  }
-
-  @keyframes drift {
-    0% { transform: translate(0,0) scale(1); }
-    50% { transform: translate(10px, -10px) scale(1.1); }
-    100% { transform: translate(0,0) scale(1); }
-  }
-
-  /* Flicker effect */
-  .screen::after {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: rgba(255,255,255,0.02);
-    animation: flicker 0.15s infinite;
-  }
-
-  @keyframes flicker {
-    0%, 100% { opacity: 0.05; }
-    50% { opacity: 0.15; }
-  }
-
-  #phrase {
-    position: relative;
-    z-index: 2;
-    padding: 20px;
-    font-size: 1.1em;
-    line-height: 1.5em;
-    text-align: center;
-    color: #baffba;
-    text-shadow: 0 0 6px #0f0;
-  }
-
-  .dial {
-    margin-top: 30px;
-    width: 120px;
-    height: 120px;
-    border: 4px solid #333;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #666, #222);
-    box-shadow: 0 0 20px #0f0;
-    position: relative;
-    cursor: grab;
-    transition: transform 0.2s;
-  }
-
-  .dial:active {
-    cursor: grabbing;
-  }
-
-  .pointer {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    width: 4px;
-    height: 20px;
-    background: #0f0;
-    transform: translateX(-50%);
-    border-radius: 2px;
-    box-shadow: 0 0 10px #0f0;
-  }
-
-  .theme-name {
-    margin-top: 15px;
-    color: #9f9;
-    text-shadow: 0 0 5px #0f0;
-    font-size: 1.2em;
-  }
-</style>
-</head>
-<body>
-  <div class="screen" id="screen">
-    <div class="mist"></div>
-    <div class="static-line"></div>
-    <div id="phrase">Turn the dial to tune into a transmission...</div>
-  </div>
-
-  <div class="dial" id="dial">
-    <div class="pointer"></div>
-  </div>
-  <div class="theme-name" id="themeName">—</div>
-
 <script>
 const themes = ["Fantasy", "Sci-Fi", "Spooky", "Silly", "Superhero", "Mashup"];
-let currentThemeIndex = 0;
+let currentThemeIndex = -1;
 
-// Banks (simplified for prototype)
+// Word banks (trimmed for clarity)
 const banks = {
   Fantasy: {
     roles: ["Wizard", "Knight", "Fairy", "Goblin"],
@@ -151,43 +15,81 @@ const banks = {
     subjects: ["warp drive", "nanobot swarm", "quantum rift"],
     actions: ["tests", "sabotages", "discovers"],
     contexts: ["inside a derelict station", "during hyperspace", "on Mars"]
+  },
+  Spooky: {
+    roles: ["Ghost", "Gravedigger", "Witch", "Doll"],
+    subjects: ["mirror", "lantern", "tomb", "curse"],
+    actions: ["haunts", "screams at", "possesses"],
+    contexts: ["in a thunderstorm", "at midnight", "beneath the church"]
   }
 };
 
-// Dial rotation logic
 const dial = document.getElementById("dial");
-const themeName = document.getElementById("themeName");
 const phraseEl = document.getElementById("phrase");
+const themeName = document.getElementById("themeName");
+
 let isDragging = false;
-let rotation = 0;
+let currentAngle = 0;
 
-dial.addEventListener("mousedown", () => isDragging = true);
-window.addEventListener("mouseup", () => isDragging = false);
-window.addEventListener("mousemove", e => {
+dial.addEventListener("mousedown", startDrag);
+window.addEventListener("mouseup", stopDrag);
+window.addEventListener("mousemove", rotateDial);
+dial.addEventListener("touchstart", e => startDrag(e.touches[0]));
+window.addEventListener("touchmove", e => rotateDial(e.touches[0]));
+window.addEventListener("touchend", stopDrag);
+
+function startDrag(e) { isDragging = true; updateAngle(e); }
+function stopDrag() { isDragging = false; }
+
+function rotateDial(e) {
   if (!isDragging) return;
-  rotation += e.movementX * 0.5;
-  dial.style.transform = `rotate(${rotation}deg)`;
+  updateAngle(e);
+}
 
-  const index = Math.floor(((rotation % 360 + 360) % 360) / (360 / themes.length));
+function updateAngle(e) {
+  const rect = dial.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const dx = e.clientX - cx;
+  const dy = e.clientY - cy;
+  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+  currentAngle = (angle + 450) % 360; // normalize
+  dial.style.transform = `rotate(${currentAngle}deg)`;
+
+  const index = Math.floor(currentAngle / (360 / themes.length));
   if (index !== currentThemeIndex) {
     currentThemeIndex = index;
     const t = themes[currentThemeIndex];
     themeName.textContent = t;
     generatePhrase(t);
+    dial.classList.add("snap");
+    setTimeout(()=>dial.classList.remove("snap"),150);
   }
-});
+}
 
+// — Phrase assembly effect —
 function generatePhrase(theme) {
   const bank = banks[theme];
   if (!bank) return;
-  const r = rand(bank.roles);
-  const s = rand(bank.subjects);
-  const a = rand(bank.actions);
-  const c = rand(bank.contexts);
-  phraseEl.textContent = `${r} ${s} ${a} ${c}`;
+  const phrase = `${rand(bank.roles)} ${rand(bank.subjects)} ${rand(bank.actions)} ${rand(bank.contexts)}`;
+  glitchText(phrase);
 }
 
 function rand(arr){return arr[Math.floor(Math.random()*arr.length)]}
+
+function glitchText(fullText) {
+  const chars = "!@#$%^&*()_+=-?<>~◊░▒▓█";
+  let display = Array(fullText.length).fill(" ");
+  phraseEl.textContent = "";
+  let progress = 0;
+  const interval = setInterval(()=>{
+    for (let i=0; i<fullText.length; i++) {
+      if (Math.random() < progress / fullText.length) display[i] = fullText[i];
+      else display[i] = chars[Math.floor(Math.random() * chars.length)];
+    }
+    phraseEl.textContent = display.join("");
+    progress++;
+    if (progress > fullText.length + 5) clearInterval(interval);
+  }, 40);
+}
 </script>
-</body>
-</html>
