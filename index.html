@@ -1,246 +1,230 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dark Humor Prompt Generator</title>
-  <style>
-    :root{--bg:#0f1113;--card:#111318;--accent:#c792ea;--muted:#9aa0a6;--glass:rgba(255,255,255,0.03)}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial; background:linear-gradient(180deg,#071018 0%, #081018 60%);color:#e6eef6}
-    .wrap{max-width:880px;margin:36px auto;padding:20px}
-    header{display:flex;gap:16px;align-items:center}
-    h1{margin:0;font-size:20px}
-    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(2,6,10,0.6);}
-    .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
-    select,input[type=range]{background:var(--glass);border:1px solid rgba(255,255,255,0.04);color:inherit;padding:8px;border-radius:8px}
-    button{background:linear-gradient(90deg,var(--accent),#6bd3ff);border:none;padding:10px 14px;border-radius:10px;color:#041021;font-weight:700;cursor:pointer}
-    .prompt{margin-top:18px;padding:18px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));font-size:18px}
-    .meta{display:flex;gap:10px;margin-top:10px;align-items:center}
-    .small{font-size:13px;color:var(--muted)}
-    .history{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .chip{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;font-size:13px}
-    .footer{margin-top:18px;color:var(--muted);font-size:13px}
-    .seed{background:transparent;border:1px dashed rgba(255,255,255,0.03);padding:6px;border-radius:6px}
-    .flex{display:flex;gap:8px;align-items:center}
-    .big-btn{font-size:16px;padding:12px 18px}
-    @media(max-width:600px){.history{grid-template-columns:1fr}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whispers from the Void</title>
+<style>
+  body {
+    font-family: 'Courier New', monospace;
+    background: radial-gradient(circle at center, #0a0a0f 60%, #000);
+    color: #b6f2ff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .radio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .screen {
+    width: 85vw;
+    max-width: 400px;
+    height: 120px;
+    background: #041014;
+    border: 2px solid #22ffff;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #22ffff44;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10px;
+    font-size: 1.1em;
+    color: #aafaff;
+    transition: opacity 0.6s ease;
+  }
+
+  .dial {
+    width: 220px;
+    height: 220px;
+    border: 3px solid #22ffff;
+    border-radius: 50%;
+    box-shadow: 0 0 20px #22ffff44;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dial .marker {
+    position: absolute;
+    width: 2px;
+    height: 12px;
+    background: #22ffff;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .dial .labels {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+
+  .dial .labels div {
+    position: absolute;
+    transform-origin: center center;
+    color: #44e1ff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+
+  .dial .labels div.active {
+    color: #fff;
+    text-shadow: 0 0 8px #22ffff;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    width: 85vw;
+    max-width: 400px;
+  }
+
+  .mute-btn {
+    background: none;
+    border: 1px solid #22ffff;
+    border-radius: 6px;
+    padding: 4px 10px;
+    color: #22ffff;
+    cursor: pointer;
+    font-size: 0.9em;
+  }
+
+  .credit {
+    font-size: 12px;
+    color: #888;
+    text-align: right;
+  }
+
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="card" style="padding:12px 14px;display:flex;align-items:center;gap:12px">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C10 2 4 4 4 10c0 4 3 7 3 7s-.5 3 5 3 6-3 6-3 3-3 3-7c0-6-6-8-9-8z" stroke="white" stroke-opacity="0.9" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div>
-          <h1>Dark Humor Prompt Generator</h1>
-          <div class="small">Generate deadpan, slightly off, delightfully grim prompt seeds for illustration.</div>
-        </div>
+  <div class="radio">
+    <div class="screen" id="screen">Turn the dial to tune in...</div>
+    <div class="dial" id="dial">
+      <div class="marker"></div>
+      <div class="labels">
+        <div style="top:5%;left:50%;transform:translate(-50%,0);" data-theme="Fantasy">Fantasy</div>
+        <div style="top:25%;right:0;transform:translate(0,-50%) rotate(30deg);" data-theme="Sci-Fi">Sci-Fi</div>
+        <div style="bottom:25%;right:0;transform:translate(0,50%) rotate(60deg);" data-theme="Spooky">Spooky</div>
+        <div style="bottom:5%;left:50%;transform:translate(-50%,0);" data-theme="Silly">Silly</div>
+        <div style="bottom:25%;left:0;transform:translate(0,50%) rotate(-60deg);" data-theme="Superhero">Superhero</div>
+        <div style="top:25%;left:0;transform:translate(0,-50%) rotate(-30deg);" data-theme="Mashup">Mashup</div>
       </div>
-    </header>
+    </div>
 
-    <div class="card" style="margin-top:16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <div style="flex:1;min-width:220px">
-          <label class="small">Primary mood</label><br>
-          <select id="mood">
-            <option>melancholic</option>
-            <option>absurd</option>
-            <option>tenderly cruel</option>
-            <option>deadpan</option>
-            <option>playful macabre</option>
-          </select>
-        </div>
-
-        <div style="flex:1;min-width:220px">
-          <label class="small">Subject</label><br>
-          <select id="subject">
-            <option>child</option>
-            <option>elderly person</option>
-            <option>pet</option>
-            <option>houseplant</option>
-            <option>goblin</option>
-            <option>ghost</option>
-            <option>object (toaster, lamp)</option>
-            <option>worker (mailman, dentist)</option>
-          </select>
-        </div>
-
-        <div style="flex:1;min-width:180px">
-          <label class="small">Twist</label><br>
-          <select id="twist">
-            <option>ritualized</option>
-            <option>mundane decay</option>
-            <option>polite violence</option>
-            <option>bureaucratic afterlife</option>
-            <option>caring cruelty</option>
-            <option>absurd literalism</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="controls">
-        <div class="flex">
-          <label class="small">Weirdness</label>
-          <input id="weird" type="range" min="0" max="10" value="6">
-        </div>
-
-        <div class="flex">
-          <label class="small">Tenderness</label>
-          <input id="tender" type="range" min="0" max="10" value="3">
-        </div>
-
-        <div style="margin-left:auto;display:flex;gap:8px">
-          <button id="gen" class="big-btn">Generate</button>
-          <button id="surprise">Surprise</button>
-        </div>
-      </div>
-
-      <div id="output" class="prompt">Press <strong>Generate</strong> or <strong>Surprise</strong> to make a prompt.</div>
-
-      <div class="meta">
-        <div class="small">Seed: <span id="seed" class="seed">—</span></div>
-        <div style="margin-left:auto;display:flex;gap:8px">
-          <button id="copy">Copy</button>
-          <button id="save">Save</button>
-          <button id="clear">Clear</button>
-        </div>
-      </div>
-
-      <div class="history" id="history"></div>
-
-      <div class="footer">Tip: click <strong>Save</strong> to keep favourite seeds — then use them as captions or starting sketches.</div>
+    <div class="controls">
+      <button id="muteBtn" class="mute-btn">🔇 Mute</button>
+      <div class="credit">Made by BinaryCrow</div>
     </div>
   </div>
 
-  <script>
-    // Word banks
-    const actions = [
-      'watering the plants', 'making toast', 'folding laundry', 'teaching a class', 'painting a portrait', 'taking a nap', 'polishing trophies', 'arranging flowers', 'writing a will', 'baking cupcakes'
+<script>
+const themes = {
+  "Fantasy": {
+    roles: ["Wizard", "Knight", "Dragon", "Thief", "Elf"],
+    subjects: ["the Moon", "a cursed forest", "the ancient king", "a potion", "a shadow beast"],
+    actions: ["seeks", "fears", "awakens", "betrays", "summons"],
+    contexts: ["under a blood-red sky", "at the edge of the world", "beneath forgotten ruins", "during the eclipse", "in a dream"]
+  },
+  "Sci-Fi": {
+    roles: ["Android", "Captain", "Alien", "AI", "Smuggler"],
+    subjects: ["the reactor core", "a wormhole", "time itself", "a black hole", "the Federation"],
+    actions: ["collapses", "hacks", "explores", "transmits", "betrays"],
+    contexts: ["in orbit", "during hypersleep", "on a dying planet", "inside a simulation", "at light speed"]
+  },
+  "Spooky": {
+    roles: ["Ghost", "Witch", "Vampire", "Doll", "Caretaker"],
+    subjects: ["the mirror", "a whisper", "the basement", "a photograph", "the attic door"],
+    actions: ["screams", "beckons", "waits", "bleeds", "laughs"],
+    contexts: ["after midnight", "during the seance", "under candlelight", "on Halloween night", "as thunder rolls"]
+  },
+  "Silly": {
+    roles: ["Clown", "Banana", "Duck", "Toaster", "Grandma"],
+    subjects: ["a pancake", "a shoelace", "a rubber chicken", "a kazoo", "a sandwich"],
+    actions: ["juggles", "sneezes on", "dances with", "tickles", "throws"],
+    contexts: ["in the supermarket", "at a funeral", "during a magic show", "while skydiving", "on live TV"]
+  },
+  "Superhero": {
+    roles: ["Hero", "Villain", "Sidekick", "Mutant", "Reporter"],
+    subjects: ["a laser cannon", "the mayor", "a meteor", "justice", "a secret identity"],
+    actions: ["saves", "destroys", "confuses", "reveals", "absorbs"],
+    contexts: ["in the city", "on the rooftop", "during a thunderstorm", "at dawn", "between realities"]
+  },
+  "Mashup": {
+    roles: ["Goblin", "Robot", "Detective", "Witch", "Cowboy"],
+    subjects: ["the tavern", "a portal", "a secret lab", "a time crystal", "a haunted cactus"],
+    actions: ["mixes", "summons", "teleports", "investigates", "bakes"],
+    contexts: ["at sunset", "on Mars", "in a dream", "under the sea", "during karaoke night"]
+  }
+};
+
+const screen = document.getElementById("screen");
+const labels = document.querySelectorAll(".labels div");
+const muteBtn = document.getElementById("muteBtn");
+
+let currentTheme = null;
+let muted = false;
+let staticAudio = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_3adfa42c53.mp3");
+staticAudio.loop = true;
+staticAudio.volume = 0.2;
+staticAudio.play().catch(()=>{});
+
+muteBtn.addEventListener("click",()=>{
+  muted = !muted;
+  muteBtn.textContent = muted ? "🔈 Unmute" : "🔇 Mute";
+  staticAudio.muted = muted;
+});
+
+labels.forEach(label=>{
+  label.addEventListener("click", ()=>{
+    labels.forEach(l=>l.classList.remove("active"));
+    label.classList.add("active");
+    const theme = label.dataset.theme;
+    tuneToTheme(theme);
+  });
+});
+
+function tuneToTheme(themeName){
+  if (muted===false) {
+    staticAudio.currentTime = 0;
+    staticAudio.play().catch(()=>{});
+  }
+  screen.style.opacity = 0.3;
+  screen.textContent = "…tuning…";
+  setTimeout(()=>{
+    const t = themes[themeName];
+    const words = [
+      random(t.roles),
+      random(t.subjects),
+      random(t.actions),
+      random(t.contexts)
     ];
-    const objects = [
-      'a skull', 'an old shoe', 'a moth-eaten teddy', 'a jar of whispers', 'a glass eye', 'an eviction notice', 'a single glove', 'a broken music box', 'a faded postcard'
-    ];
-    const places = [
-      'attic', 'bus stop', 'diner at 3am', 'cemetery greenhouse', 'library basement', 'abandoned playground', 'family photo studio'
-    ];
-    const tones = {
-      melancholic: ['softly tragic','lonely yet polite','wearily sincere'],
-      absurd: ['ridiculously specific','delightfully wrong','comic and tiny'],
-      'tenderly cruel': ['gentle violence','caring but vicious','sympathetic cruelty'],
-      deadpan: ['matter-of-fact','blunt and quiet','politely grim'],
-      'playful macabre': ['cheeky and dark','sprightly mournful','mischievously bleak']
-    };
+    const phrase = `${words[0]} ${words[1]} ${words[2]} ${words[3]}.`;
+    screen.style.animation = "flicker 1s ease infinite alternate";
+    screen.textContent = phrase;
+    setTimeout(()=> screen.style.animation = "", 2000);
+    screen.style.opacity = 1;
+  }, 1500);
+}
 
-    const moodEl = document.getElementById('mood');
-    const subjectEl = document.getElementById('subject');
-    const twistEl = document.getElementById('twist');
-    const output = document.getElementById('output');
-    const seedEl = document.getElementById('seed');
-    const historyEl = document.getElementById('history');
-
-    function rng(seed){
-      // simple xorshift32
-      let x = seed >>> 0;
-      return function(){ x ^= x << 13; x ^= x >>> 17; x ^= x << 5; return (x >>> 0) / 4294967295; }
-    }
-
-    function randomFrom(arr, r){ return arr[Math.floor(r()*arr.length)]; }
-
-    function makePrompt(s){
-      const r = rng(s);
-      const mood = moodEl.value;
-      const subject = subjectEl.value;
-      const twist = twistEl.value;
-      const weird = +document.getElementById('weird').value;
-      const tender = +document.getElementById('tender').value;
-
-      const tone = randomFrom(tones[mood], r);
-      const action = randomFrom(actions, r);
-      const obj = randomFrom(objects, r);
-      const place = randomFrom(places, r);
-
-      // Compose
-      const lines = [];
-      // Lead sentence
-      let lead = `A ${subject} ${action} in a ${place}`;
-
-      // If weirdness high, add object twist
-      if(weird > 5){
-        lead += ` while secretly tending ${obj}`;
-      }
-
-      // If tender present, soften
-      if(tender > 5){
-        lead += ` — they hum to themselves and seem proud.`;
-      } else {
-        lead += `.`;
-      }
-
-      // small flourish depending on twist
-      let flourish = '';
-      if(twist === 'ritualized') flourish = `There is a small, polite ritual involved: everyone bows to the bread before eating.`;
-      if(twist === 'mundane decay') flourish = `Everything smells faintly of old cigarettes and forgotten birthdays.`;
-      if(twist === 'polite violence') flourish = `They apologize mid-action as if manners could stop it.`;
-      if(twist === 'bureaucratic afterlife') flourish = `Forms must be filled in triplicate — the afterlife insists on paperwork.`;
-      if(twist === 'caring cruelty') flourish = `They trim the thorny parts with gentle hands.`;
-      if(twist === 'absurd literalism') flourish = `Metaphors are applied literally; the heart literally wears a little wool sweater.`;
-
-      // Combine with tone
-      const prompt = `${lead} ${flourish} (${tone})`;
-      return prompt;
-    }
-
-    function showPrompt(prompt, seed){
-      output.textContent = prompt;
-      seedEl.textContent = seed;
-    }
-
-    function genWithSeed(seed){ const p = makePrompt(seed); showPrompt(p, seed); addHistory(p, seed); }
-
-    function addHistory(text, seed){
-      const el = document.createElement('div'); el.className='chip'; el.textContent = text;
-      el.title = `Seed: ${seed}`;
-      el.onclick = ()=>{ navigator.clipboard && navigator.clipboard.writeText(text); el.style.opacity=0.6; setTimeout(()=>el.style.opacity=1,150); };
-      historyEl.prepend(el);
-      // keep only last 12
-      while(historyEl.children.length>12) historyEl.removeChild(historyEl.lastChild);
-    }
-
-    document.getElementById('gen').addEventListener('click', ()=>{
-      const seed = Math.floor(Math.random()*4294967295);
-      genWithSeed(seed);
-    });
-
-    document.getElementById('surprise').addEventListener('click', ()=>{
-      // randomize settings then generate
-      moodEl.selectedIndex = Math.floor(Math.random()*moodEl.options.length);
-      subjectEl.selectedIndex = Math.floor(Math.random()*subjectEl.options.length);
-      twistEl.selectedIndex = Math.floor(Math.random()*twistEl.options.length);
-      document.getElementById('weird').value = Math.floor(Math.random()*11);
-      document.getElementById('tender').value = Math.floor(Math.random()*11);
-      const seed = Math.floor(Math.random()*4294967295);
-      genWithSeed(seed);
-    });
-
-    document.getElementById('copy').addEventListener('click', ()=>{
-      const text = output.textContent;
-      if(!text) return;
-      navigator.clipboard.writeText(text).then(()=>{
-        const old = output.textContent; output.textContent = 'Copied! — '+old;
-        setTimeout(()=>output.textContent = old,900);
-      });
-    });
-
-    document.getElementById('save').addEventListener('click', ()=>{
-      const text = output.textContent; const seed = seedEl.textContent;
-      if(!text || seed==='—') return;
-      addHistory(text, seed);
-    });
-
-    document.getElementById('clear').addEventListener('click', ()=>{ historyEl.innerHTML=''; });
-
-    // generate an initial sample
-    genWithSeed( Date.now() & 0xffffffff );
-  </script>
+function random(list){ return list[Math.floor(Math.random()*list.length)]; }
+</script>
 </body>
 </html>
