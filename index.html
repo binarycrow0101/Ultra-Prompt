@@ -6,225 +6,226 @@
 <title>Whispers from the Void</title>
 <style>
   body {
+    background: radial-gradient(ellipse at center, #0a0a0a 0%, #000 100%);
+    color: #b0ffa7;
     font-family: 'Courier New', monospace;
-    background: radial-gradient(circle at center, #0a0a0f 60%, #000);
-    color: #b6f2ff;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100vh;
-    margin: 0;
     overflow: hidden;
   }
-
+  h1 {
+    color: #90ffb0;
+    font-size: 1.5em;
+    text-shadow: 0 0 10px #53ff8a;
+  }
   .radio {
+    position: relative;
+    width: 280px;
+    height: 400px;
+    background: #111;
+    border: 4px solid #444;
+    border-radius: 15px;
+    box-shadow: 0 0 25px rgba(50,255,80,0.3);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    justify-content: space-between;
+    padding: 20px;
   }
-
   .screen {
-    width: 85vw;
-    max-width: 400px;
-    height: 120px;
-    background: #041014;
-    border: 2px solid #22ffff;
-    border-radius: 8px;
-    box-shadow: 0 0 15px #22ffff44;
+    width: 90%;
+    height: 100px;
+    background: #002000;
+    border: 2px inset #204020;
+    color: #b0ffa7;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 1.1em;
     text-align: center;
     padding: 10px;
-    font-size: 1.1em;
-    color: #aafaff;
-    transition: opacity 0.6s ease;
+    text-shadow: 0 0 8px #40ff60;
+    transition: opacity 1s ease;
   }
-
   .dial {
-    width: 220px;
-    height: 220px;
-    border: 3px solid #22ffff;
-    border-radius: 50%;
-    box-shadow: 0 0 20px #22ffff44;
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle at 30% 30%, #333 0%, #111 80%);
+    border-radius: 50%;
+    border: 4px solid #666;
+    box-shadow: inset 0 0 20px #000, 0 0 10px #0f0;
+    cursor: grab;
+    transition: transform 0.2s ease;
   }
-
-  .dial .marker {
+  .dial::after {
+    content: "";
     position: absolute;
-    width: 2px;
-    height: 12px;
-    background: #22ffff;
-    top: 5px;
+    width: 6px;
+    height: 40px;
+    background: #0f0;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
+    border-radius: 3px;
+    box-shadow: 0 0 10px #0f0;
   }
-
-  .dial .labels {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-  }
-
-  .dial .labels div {
-    position: absolute;
-    transform-origin: center center;
-    color: #44e1ff;
-    font-size: 13px;
-    cursor: pointer;
-    transition: color 0.2s ease;
-  }
-
-  .dial .labels div.active {
-    color: #fff;
-    text-shadow: 0 0 8px #22ffff;
-  }
-
-  .controls {
-    display: flex;
-    justify-content: space-between;
-    width: 85vw;
-    max-width: 400px;
-  }
-
   .mute-btn {
-    background: none;
-    border: 1px solid #22ffff;
-    border-radius: 6px;
-    padding: 4px 10px;
-    color: #22ffff;
+    margin-top: 10px;
+    background: #033;
+    color: #8ff;
+    border: 1px solid #088;
+    border-radius: 8px;
+    padding: 5px 12px;
     cursor: pointer;
-    font-size: 0.9em;
   }
-
   .credit {
     font-size: 12px;
-    color: #888;
-    text-align: right;
-  }
-
-  @keyframes flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.2; }
+    color: #555;
+    margin-top: 10px;
   }
 </style>
 </head>
 <body>
-  <div class="radio">
-    <div class="screen" id="screen">Turn the dial to tune in...</div>
-    <div class="dial" id="dial">
-      <div class="marker"></div>
-      <div class="labels">
-        <div style="top:5%;left:50%;transform:translate(-50%,0);" data-theme="Fantasy">Fantasy</div>
-        <div style="top:25%;right:0;transform:translate(0,-50%) rotate(30deg);" data-theme="Sci-Fi">Sci-Fi</div>
-        <div style="bottom:25%;right:0;transform:translate(0,50%) rotate(60deg);" data-theme="Spooky">Spooky</div>
-        <div style="bottom:5%;left:50%;transform:translate(-50%,0);" data-theme="Silly">Silly</div>
-        <div style="bottom:25%;left:0;transform:translate(0,50%) rotate(-60deg);" data-theme="Superhero">Superhero</div>
-        <div style="top:25%;left:0;transform:translate(0,-50%) rotate(-30deg);" data-theme="Mashup">Mashup</div>
-      </div>
-    </div>
+  <h1>Whispers from the Void</h1>
 
-    <div class="controls">
-      <button id="muteBtn" class="mute-btn">🔇 Mute</button>
-      <div class="credit">Made by BinaryCrow</div>
-    </div>
+  <div class="radio">
+    <div class="screen" id="screen">Tune the dial...</div>
+    <div class="dial" id="dial"></div>
+    <button id="muteBtn" class="mute-btn">🔇 Mute</button>
+    <div class="credit">Made by BinaryCrow</div>
   </div>
 
+  <audio id="staticAudio" loop>
+    <source src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_c6d8bdbcc3.mp3?filename=radio-static-6121.mp3" type="audio/mpeg">
+  </audio>
+
 <script>
-const themes = {
+const themes = ["Fantasy","Sci-Fi","Spooky","Silly","Superhero","Mashup"];
+let currentThemeIndex = 0;
+let isMuted = false;
+
+// Example banks — replace with your real ones
+const wordBanks = {
   "Fantasy": {
-    roles: ["Wizard", "Knight", "Dragon", "Thief", "Elf"],
-    subjects: ["the Moon", "a cursed forest", "the ancient king", "a potion", "a shadow beast"],
-    actions: ["seeks", "fears", "awakens", "betrays", "summons"],
-    contexts: ["under a blood-red sky", "at the edge of the world", "beneath forgotten ruins", "during the eclipse", "in a dream"]
+    roles: ["Wizard","Knight","Dragon","Elf"],
+    subjects: ["moon","castle","forest","spell"],
+    actions: ["guards","summons","burns","whispers to"],
+    contexts: ["the cursed well","a sleeping god","forgotten ruins","its own reflection"]
   },
   "Sci-Fi": {
-    roles: ["Android", "Captain", "Alien", "AI", "Smuggler"],
-    subjects: ["the reactor core", "a wormhole", "time itself", "a black hole", "the Federation"],
-    actions: ["collapses", "hacks", "explores", "transmits", "betrays"],
-    contexts: ["in orbit", "during hypersleep", "on a dying planet", "inside a simulation", "at light speed"]
+    roles: ["Android","Pilot","Alien","Scientist"],
+    subjects: ["laser","ship","planet","signal"],
+    actions: ["discovers","hacks","evaporates","befriends"],
+    contexts: ["an ancient satellite","a rogue AI","quantum space","a forgotten clone"]
   },
   "Spooky": {
-    roles: ["Ghost", "Witch", "Vampire", "Doll", "Caretaker"],
-    subjects: ["the mirror", "a whisper", "the basement", "a photograph", "the attic door"],
-    actions: ["screams", "beckons", "waits", "bleeds", "laughs"],
-    contexts: ["after midnight", "during the seance", "under candlelight", "on Halloween night", "as thunder rolls"]
+    roles: ["Ghost","Witch","Skeleton","Haunted Doll"],
+    subjects: ["mirror","crypt","lantern","crow"],
+    actions: ["screeches at","summons","follows","lurks near"],
+    contexts: ["the foggy moor","midnight","a cursed bell","your shadow"]
   },
   "Silly": {
-    roles: ["Clown", "Banana", "Duck", "Toaster", "Grandma"],
-    subjects: ["a pancake", "a shoelace", "a rubber chicken", "a kazoo", "a sandwich"],
-    actions: ["juggles", "sneezes on", "dances with", "tickles", "throws"],
-    contexts: ["in the supermarket", "at a funeral", "during a magic show", "while skydiving", "on live TV"]
+    roles: ["Clown","Hamster","Duck","Grandma"],
+    subjects: ["toaster","marshmallow","banana","tuba"],
+    actions: ["sings to","throws","paints","tickles"],
+    contexts: ["at the supermarket","in space","under the couch","during lunch"]
   },
   "Superhero": {
-    roles: ["Hero", "Villain", "Sidekick", "Mutant", "Reporter"],
-    subjects: ["a laser cannon", "the mayor", "a meteor", "justice", "a secret identity"],
-    actions: ["saves", "destroys", "confuses", "reveals", "absorbs"],
-    contexts: ["in the city", "on the rooftop", "during a thunderstorm", "at dawn", "between realities"]
+    roles: ["Hero","Villain","Sidekick","Mutant"],
+    subjects: ["laser eyes","cape","sidecar","gadget"],
+    actions: ["rescues","punches","flies over","argues with"],
+    contexts: ["the moon base","a crowded mall","city hall","an alternate dimension"]
   },
   "Mashup": {
-    roles: ["Goblin", "Robot", "Detective", "Witch", "Cowboy"],
-    subjects: ["the tavern", "a portal", "a secret lab", "a time crystal", "a haunted cactus"],
-    actions: ["mixes", "summons", "teleports", "investigates", "bakes"],
-    contexts: ["at sunset", "on Mars", "in a dream", "under the sea", "during karaoke night"]
+    roles: ["Goblin","Robot","Zombie Pirate","Time Wizard"],
+    subjects: ["spaghetti","flux capacitor","enchanted taco","quantum wand"],
+    actions: ["throws","repairs","enchants","consumes"],
+    contexts: ["inside a volcano","at a rave","in your fridge","beneath the sea"]
   }
 };
 
+// Dial logic
+const dial = document.getElementById("dial");
 const screen = document.getElementById("screen");
-const labels = document.querySelectorAll(".labels div");
+const staticAudio = document.getElementById("staticAudio");
 const muteBtn = document.getElementById("muteBtn");
 
-let currentTheme = null;
-let muted = false;
-let staticAudio = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_3adfa42c53.mp3");
-staticAudio.loop = true;
-staticAudio.volume = 0.2;
-staticAudio.play().catch(()=>{});
+if (!isMuted) staticAudio.play().catch(()=>{});
 
-muteBtn.addEventListener("click",()=>{
-  muted = !muted;
-  muteBtn.textContent = muted ? "🔈 Unmute" : "🔇 Mute";
-  staticAudio.muted = muted;
-});
+let rotating = false;
+let startAngle = 0, currentRotation = 0;
 
-labels.forEach(label=>{
-  label.addEventListener("click", ()=>{
-    labels.forEach(l=>l.classList.remove("active"));
-    label.classList.add("active");
-    const theme = label.dataset.theme;
-    tuneToTheme(theme);
-  });
-});
+dial.addEventListener("mousedown", startRotate);
+dial.addEventListener("touchstart", startRotate);
 
-function tuneToTheme(themeName){
-  if (muted===false) {
-    staticAudio.currentTime = 0;
-    staticAudio.play().catch(()=>{});
-  }
-  screen.style.opacity = 0.3;
-  screen.textContent = "…tuning…";
-  setTimeout(()=>{
-    const t = themes[themeName];
-    const words = [
-      random(t.roles),
-      random(t.subjects),
-      random(t.actions),
-      random(t.contexts)
-    ];
-    const phrase = `${words[0]} ${words[1]} ${words[2]} ${words[3]}.`;
-    screen.style.animation = "flicker 1s ease infinite alternate";
-    screen.textContent = phrase;
-    setTimeout(()=> screen.style.animation = "", 2000);
-    screen.style.opacity = 1;
-  }, 1500);
+function startRotate(e){
+  e.preventDefault();
+  rotating = true;
+  startAngle = getAngle(e);
+  document.addEventListener("mousemove", rotate);
+  document.addEventListener("mouseup", stopRotate);
+  document.addEventListener("touchmove", rotate);
+  document.addEventListener("touchend", stopRotate);
 }
 
-function random(list){ return list[Math.floor(Math.random()*list.length)]; }
+function rotate(e){
+  if(!rotating) return;
+  const angle = getAngle(e);
+  const delta = angle - startAngle;
+  dial.style.transform = `rotate(${currentRotation + delta}deg)`;
+}
+
+function stopRotate(e){
+  rotating = false;
+  const angle = getAngle(e);
+  currentRotation += angle - startAngle;
+
+  // snap to nearest theme
+  const step = 360 / themes.length;
+  const snapped = Math.round(currentRotation / step) * step;
+  currentRotation = snapped;
+  dial.style.transform = `rotate(${snapped}deg)`;
+  currentThemeIndex = ((Math.round(snapped / step) % themes.length) + themes.length) % themes.length;
+
+  // reveal phrase after tuning delay
+  screen.style.opacity = 0.3;
+  setTimeout(()=>{
+    const phrase = generatePhrase(themes[currentThemeIndex]);
+    screen.textContent = phrase;
+    screen.style.opacity = 1;
+  }, 1000);
+}
+
+function getAngle(e){
+  const rect = dial.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) - cx;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) - cy;
+  return Math.atan2(y, x) * (180/Math.PI);
+}
+
+function generatePhrase(theme){
+  const bank = wordBanks[theme];
+  const r = rand(bank.roles);
+  const s = rand(bank.subjects);
+  const a = rand(bank.actions);
+  const c = rand(bank.contexts);
+  return `${r} ${s} ${a} ${c}.`;
+}
+
+function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+// mute toggle
+muteBtn.addEventListener("click", ()=>{
+  isMuted = !isMuted;
+  staticAudio.muted = isMuted;
+  muteBtn.textContent = isMuted ? "🔈 Unmute" : "🔇 Mute";
+});
 </script>
 </body>
 </html>
