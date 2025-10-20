@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Whispers from the Void</title>
+<title>Mystic Radio Tuner</title>
 <style>
   body {
     margin: 0;
@@ -18,10 +18,9 @@
     overflow: hidden;
   }
 
-  /* Screen container */
   .screen {
-    width: 400px;
-    height: 150px;
+    width: 440px;
+    height: 160px;
     background: #001;
     border: 3px solid #0ff5;
     box-shadow: 0 0 30px #0ff2;
@@ -29,13 +28,12 @@
     align-items: center;
     justify-content: center;
     color: #0ff;
-    font-size: 1.2em;
+    font-size: 1.1em;
     text-align: center;
     position: relative;
     overflow: hidden;
   }
 
-  /* Static flicker effect */
   .screen::after {
     content: "";
     position: absolute;
@@ -45,23 +43,22 @@
       rgba(255,255,255,0.03) 2px,
       rgba(0,0,0,0.05) 3px
     );
-    animation: flicker 0.2s infinite;
+    animation: flicker 0.25s infinite;
     pointer-events: none;
   }
 
   @keyframes flicker {
-    0%,100% { opacity: 0.8; }
-    50% { opacity: 0.4; }
+    0%,100% { opacity: 0.9; }
+    50% { opacity: 0.6; }
   }
 
-  /* Dial */
   .dial {
-    width: 150px;
-    height: 150px;
+    width: 160px;
+    height: 160px;
     background: radial-gradient(circle, #222 0%, #000 90%);
     border: 4px solid #0ff5;
     border-radius: 50%;
-    margin-top: 40px;
+    margin-top: 50px;
     position: relative;
     box-shadow: 0 0 30px #0ff2 inset;
     cursor: grab;
@@ -70,16 +67,16 @@
   .pointer {
     position: absolute;
     width: 4px;
-    height: 40px;
+    height: 50px;
     background: #0ff;
-    top: 20px;
+    top: 15px;
     left: calc(50% - 2px);
     border-radius: 2px;
     transform-origin: bottom center;
   }
 
   .static {
-    animation: staticText 0.15s steps(5) 10;
+    animation: staticText 0.15s steps(5) 12;
   }
 
   @keyframes staticText {
@@ -88,10 +85,27 @@
     50% { opacity: 1; filter: blur(1px); }
     75% { opacity: 0.6; filter: blur(3px); }
   }
+
+  /* Subtle mist particles */
+  .mist {
+    position: absolute;
+    width: 800px;
+    height: 800px;
+    top: -300px;
+    background: radial-gradient(circle, rgba(0,255,255,0.1) 0%, transparent 70%);
+    filter: blur(100px);
+    animation: drift 20s linear infinite alternate;
+  }
+
+  @keyframes drift {
+    from { transform: translateX(-100px) translateY(0px); }
+    to { transform: translateX(100px) translateY(50px); }
+  }
 </style>
 </head>
 <body>
-  <div class="screen" id="screen">~ tune in ~</div>
+  <div class="mist"></div>
+  <div class="screen" id="screen">~ tuning ~</div>
   <div class="dial" id="dial">
     <div class="pointer" id="pointer"></div>
   </div>
@@ -104,17 +118,53 @@ const pointer = document.getElementById('pointer');
 let currentAngle = 0;
 let dragging = false;
 let lastAngle = 0;
+let lastChannel = -1;
 
-// Simple phrase generator (use your real one later)
-function generatePhrase() {
-  const roles = ["Goblin", "Wizard", "Knight", "Merchant", "Beast"];
-  const subjects = ["Mushroom", "Storm", "Crown", "Mirror", "Tavern"];
-  const actions = ["whispers to", "steals from", "trades with", "hides from", "summons"];
-  const contexts = ["the void", "a forgotten king", "the moonlight", "a sleeping god", "their own reflection"];
-  return `${roles[Math.floor(Math.random()*roles.length)]} ${subjects[Math.floor(Math.random()*subjects.length)]} ${actions[Math.floor(Math.random()*actions.length)]} ${contexts[Math.floor(Math.random()*contexts.length)]}`;
+// Channel list
+const channels = [
+  { name: "Goblin Frequencies", generator: goblinPrompt },
+  { name: "Dream Residue", generator: dreamPrompt },
+  { name: "Mortal Mashups", generator: mashupPrompt },
+  { name: "Haunted Folklore", generator: folklorePrompt },
+  { name: "Void Noise", generator: voidPrompt }
+];
+
+// ---- Prompt Generators ----
+
+function goblinPrompt() {
+  const goblins = ["Grib", "Snort", "Mog", "Kreeg", "Thistle", "Fungrot"];
+  const actions = ["ate", "bargained with", "stole from", "sang to", "was cursed by"];
+  const objects = ["a glowing rat", "the moon's toenail", "a bucket of screams", "a noble sock"];
+  return `${rand(goblins)} ${actions[Math.floor(Math.random()*actions.length)]} ${objects[Math.floor(Math.random()*objects.length)]}.`;
 }
 
+function dreamPrompt() {
+  const moods = ["a glass cloud", "the scent of thunder", "a whisper-shaped candle", "a thought that forgot itself"];
+  return `You dreamt of ${rand(moods)}.`;
+}
+
+function mashupPrompt() {
+  const roles = ["Knight", "DJ", "Goblin", "Astrologer", "Beekeeper"];
+  const subjects = ["Vampire", "Robot", "Chef", "Detective", "Witch"];
+  const places = ["in Space", "in a Dungeon", "at a Tea Party", "during Apocalypse", "underwater"];
+  return `${rand(roles)} vs ${rand(subjects)} ${rand(places)}.`;
+}
+
+function folklorePrompt() {
+  const beings = ["The Hollow Piper", "The Candle Mare", "The Mirror Child", "The Bleeding Oak"];
+  const phrases = ["walks when no one watches", "sings through keyholes", "feeds on reflected light", "collects forgotten birthdays"];
+  return `${rand(beings)} ${rand(phrases)}.`;
+}
+
+function voidPrompt() {
+  const nonsense = ["⧫ ░ø∆Ψ∴ whispers ∵ Ψ∆ø░ ⧫", "The void hums, slightly off-key.", "Untranslatable frequencies detected..."];
+  return rand(nonsense);
+}
+
+function rand(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+
 // ---- DIAL INTERACTION ----
+
 function angleFromEvent(e) {
   const rect = dial.getBoundingClientRect();
   const cx = rect.left + rect.width / 2;
@@ -143,12 +193,25 @@ document.addEventListener('mousemove', (e)=>{
   lastAngle = newAngle;
   pointer.style.transform = `rotate(${currentAngle}deg)`;
 
-  // interpret dial angle as "frequency band"
-  const frequency = Math.abs(currentAngle % 360);
-  if (frequency > 300 && frequency < 320) {
-    displayPhrase(generatePhrase());
-  }
+  checkChannel();
 });
+
+function checkChannel() {
+  const segmentSize = 360 / channels.length;
+  let channelIndex = Math.floor((currentAngle + 360) % 360 / segmentSize);
+  if (channelIndex !== lastChannel) {
+    lastChannel = channelIndex;
+    const channel = channels[channelIndex];
+    showStatic(channel.name);
+    setTimeout(()=> displayPhrase(channel.generator()), 600);
+  }
+}
+
+function showStatic(label) {
+  screen.textContent = `~ ${label} ~`;
+  screen.classList.add('static');
+  setTimeout(()=> screen.classList.remove('static'), 400);
+}
 
 function displayPhrase(text) {
   screen.textContent = "";
