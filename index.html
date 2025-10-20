@@ -16,12 +16,12 @@
     font-family: "Courier New", monospace;
     color: #0ff;
     overflow: hidden;
-    touch-action: none; /* Prevent accidental scrolling while dragging */
+    touch-action: none;
   }
 
   .screen {
-    width: 440px;
-    height: 160px;
+    width: min(80vw, 440px);
+    height: min(25vw, 160px);
     background: #001;
     border: 3px solid #0ff5;
     box-shadow: 0 0 30px #0ff2;
@@ -29,10 +29,11 @@
     align-items: center;
     justify-content: center;
     color: #0ff;
-    font-size: 1.1em;
+    font-size: clamp(0.8em, 2vw, 1.2em);
     text-align: center;
     position: relative;
     overflow: hidden;
+    border-radius: 8px;
   }
 
   .screen::after {
@@ -54,22 +55,22 @@
   }
 
   .dial {
-    width: 160px;
-    height: 160px;
+    width: min(40vw, 160px);
+    height: min(40vw, 160px);
     background: radial-gradient(circle, #222 0%, #000 90%);
     border: 4px solid #0ff5;
     border-radius: 50%;
-    margin-top: 50px;
+    margin-top: 8vh;
     position: relative;
     box-shadow: 0 0 30px #0ff2 inset;
     cursor: grab;
-    touch-action: none; /* Prevent scrolling when rotating */
+    touch-action: none;
   }
 
   .pointer {
     position: absolute;
     width: 4px;
-    height: 50px;
+    height: 30%;
     background: #0ff;
     top: 15px;
     left: calc(50% - 2px);
@@ -88,20 +89,46 @@
     75% { opacity: 0.6; filter: blur(3px); }
   }
 
-  /* Subtle mist particles */
   .mist {
     position: absolute;
-    width: 800px;
-    height: 800px;
-    top: -300px;
+    width: 120vmax;
+    height: 120vmax;
+    top: -30vmin;
     background: radial-gradient(circle, rgba(0,255,255,0.1) 0%, transparent 70%);
     filter: blur(100px);
     animation: drift 20s linear infinite alternate;
   }
 
   @keyframes drift {
-    from { transform: translateX(-100px) translateY(0px); }
-    to { transform: translateX(100px) translateY(50px); }
+    from { transform: translateX(-5vw) translateY(0vh); }
+    to { transform: translateX(5vw) translateY(3vh); }
+  }
+
+  /* === Responsive Adjustments === */
+
+  @media (max-width: 600px) { /* iPhone portrait */
+    .screen {
+      width: 90vw;
+      height: 28vw;
+      font-size: clamp(0.9em, 3vw, 1.1em);
+    }
+    .dial {
+      width: 45vw;
+      height: 45vw;
+      margin-top: 10vh;
+    }
+  }
+
+  @media (min-width: 900px) and (orientation: landscape) { /* tablets landscape */
+    .screen {
+      width: 50vw;
+      height: 20vw;
+    }
+    .dial {
+      width: 25vw;
+      height: 25vw;
+      margin-top: 6vh;
+    }
   }
 </style>
 </head>
@@ -131,7 +158,6 @@ const channels = [
   { name: "Void Noise", generator: voidPrompt }
 ];
 
-// ---- Prompt Generators ----
 function goblinPrompt() {
   const goblins = ["Grib", "Snort", "Mog", "Kreeg", "Thistle", "Fungrot"];
   const actions = ["ate", "bargained with", "stole from", "sang to", "was cursed by"];
@@ -159,8 +185,6 @@ function voidPrompt() {
 }
 function rand(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
 
-// ---- DIAL INTERACTION ----
-
 function angleFromEvent(e) {
   const rect = dial.getBoundingClientRect();
   const cx = rect.left + rect.width / 2;
@@ -172,13 +196,10 @@ function angleFromEvent(e) {
   return Math.atan2(dy, dx) * 180 / Math.PI;
 }
 
-// Unified handlers for mouse + touch
 dial.addEventListener('mousedown', startDrag);
 dial.addEventListener('touchstart', startDrag, { passive: true });
-
 document.addEventListener('mouseup', endDrag);
 document.addEventListener('touchend', endDrag);
-
 document.addEventListener('mousemove', drag);
 document.addEventListener('touchmove', drag, { passive: true });
 
@@ -187,12 +208,10 @@ function startDrag(e) {
   lastAngle = angleFromEvent(e);
   dial.style.cursor = 'grabbing';
 }
-
 function endDrag() {
   dragging = false;
   dial.style.cursor = 'grab';
 }
-
 function drag(e) {
   if (!dragging) return;
   const newAngle = angleFromEvent(e);
@@ -213,13 +232,11 @@ function checkChannel() {
     setTimeout(()=> displayPhrase(channel.generator()), 600);
   }
 }
-
 function showStatic(label) {
   screen.textContent = `~ ${label} ~`;
   screen.classList.add('static');
   setTimeout(()=> screen.classList.remove('static'), 400);
 }
-
 function displayPhrase(text) {
   screen.textContent = "";
   const span = document.createElement('span');
