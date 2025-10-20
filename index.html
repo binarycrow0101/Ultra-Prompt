@@ -174,18 +174,24 @@ function displayPhrase(text){
     window._charRevealTimers.push(t);
   });
 
+  // fade static out when animation mostly complete
   const totalDuration = indices.length * baseDelay + 400;
   setTimeout(() => {
     fadeOutStatic();
-    // gentle glow pulse after static fades
-    container.style.transition = 'filter 2s ease-in-out';
-    container.style.filter = 'brightness(1.15) drop-shadow(0 0 8px rgba(0,255,255,0.25))';
-    setTimeout(()=> container.style.filter = 'brightness(1) drop-shadow(0 0 3px rgba(0,255,255,0.1))', 2000);
+
+    // gentle settle-in glow pulse after static fades
+    container.style.transition = 'text-shadow 1.5s ease-in-out';
+    container.style.textShadow =
+      '0 0 8px rgba(0,255,255,0.35), 0 0 16px rgba(0,255,255,0.15)';
+    setTimeout(()=>{
+      container.style.textShadow =
+        '0 0 4px rgba(0,255,255,0.18), 0 0 8px rgba(0,255,255,0.06)';
+    },1500);
   }, totalDuration);
 
-  // reduced, more random flicker
+  // much gentler, random flicker
   const flickerLoop=()=>{
-    const shouldFlicker = Math.random() < 0.35; // 35% chance to flicker on this cycle
+    const shouldFlicker = Math.random() < 0.25; // only 25% of cycles
     if(shouldFlicker){
       const flickCount = Math.floor(Math.random()*2)+1;
       for(let i=0;i<flickCount;i++){
@@ -193,11 +199,11 @@ function displayPhrase(text){
         const s=container.children[j];
         if(!s) continue;
         s.classList.add('glitch');
-        setTimeout(()=>s.classList.remove('glitch'),120+Math.random()*200);
+        setTimeout(()=>s.classList.remove('glitch'),150+Math.random()*220);
       }
     }
     if(window._charRevealTimers && window._charRevealTimers.length>0){
-      setTimeout(flickerLoop,600+Math.random()*1200);
+      setTimeout(flickerLoop,800+Math.random()*1600);
     }
   };
   flickerLoop();
@@ -217,3 +223,4 @@ initOverlays();
 setTimeout(()=>displayPhrase('~ tuning ~'),300);
 window.addEventListener('beforeunload',()=>{if(staticRAF)cancelAnimationFrame(staticRAF);stopFlicker();});
 </script>
+
