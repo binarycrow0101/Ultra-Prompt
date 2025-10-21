@@ -175,9 +175,9 @@
 const promptData = {
   "Goblin Frequencies": {
     parts: {
-      goblins: ["Grib", "Snort", "Mog", "Kreeg", "Thistle", "Fungrot", "Stanky", "Frink"],
-      actions: ["ate", "bargained with", "stole from", "sang to", "was cursed by", "casting spells","forging weapons","summoning something horrific","fighting","exploring","guarding treasure","courting", "chewing"],
-      objects: ["a glowing rat", "a Giants toenail", "a bucket of screams", "a noble sock", " a heap of bones"]
+      goblins: ["Grib", "Snort", "Mog", "Kreeg", "Thistle", "Fungrot", "Stanky", "Frink", "Glob"],
+      actions: ["ate", "bargained with", "stole from", "sang to", "was cursed by", "casting spells on","forging weapons with","summoning something horrific with","fighting","exploring","guarding treasure of","courting","chewing on"],
+      objects: ["a glowing rat", "a Giants toenail", "a bucket of screams", "a noble sock", "a heap of bones", "a bag of teeth", "in a bog of cheese"]
     },
     template: (p) => `${rand(p.goblins)} ${rand(p.actions)} ${rand(p.objects)}.`
   },
@@ -197,13 +197,13 @@ const promptData = {
     parts: {
       roles: ["Knight","DJ","Goblin","Astrologer","Beekeeper"],
       subjects: ["Vampire","Robot","Chef","Detective","Witch"],
-      places: ["in Space","in a Dungeon","at a Tea Party","during Apocalypse","underwater"]
+      places: ["in Space","in a Dungeon","at a Tea Party","during Apocalypse","underwater", "on a mountain top"]
     },
     template: (p) => `${rand(p.roles)} vs ${rand(p.subjects)} ${rand(p.places)}.`
   },
   "Haunted Folklore": {
     parts: {
-      beings: ["The Hollow Piper","The Candle Mare","The Mirror Child","The Bleeding Oak"],
+      beings: ["The Hollow Piper","The Candle Mare","The Mirror Child","The Bleeding Oak", "The distubed spirit"],
       phrases: ["walks when no one watches","sings through keyholes","feeds on reflected light","collects forgotten birthdays"]
     },
     template: (p) => `${rand(p.beings)} ${rand(p.phrases)}.`
@@ -374,3 +374,4 @@ setTimeout(()=>displayPhrase('~ tuning ~'),300);
 </script>
 </body>
 </html>
+
