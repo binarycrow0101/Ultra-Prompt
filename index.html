@@ -3,269 +3,295 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Mystic Radio Tuner — Static Enhanced</title>
+<title>Mystic Radio Tuner — Simplified Prompts</title>
 <style>
-:root { --screen-glow: 0.6; }
+  :root { --screen-glow: 0.6; }
 
-html,body { height:100%; margin:0; }
-body {
-  margin: 0;
-  height: 100vh;
-  background: radial-gradient(circle at center, #050505 30%, #000 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: "Courier New", monospace;
-  color: #0ff;
-  overflow: hidden;
-  touch-action: none;
-}
+  html,body { height:100%; margin:0; }
+  body {
+    background: radial-gradient(circle at center, #050505 30%, #000 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: "Courier New", monospace;
+    color: #0ff;
+    overflow: hidden;
+    touch-action: none;
+  }
 
-.screen {
-  width: min(80vw, 440px);
-  height: min(25vw, 160px);
-  background: #001;
-  border: 3px solid rgba(0,255,255,0.33);
-  box-shadow: 0 0 calc(30px * var(--screen-glow)) rgba(0,255,255,0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #0ff;
-  font-size: clamp(0.8em, 2vw, 1.1em);
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-}
+  .screen {
+    width: min(80vw, 440px);
+    height: min(25vw, 160px);
+    background: #001;
+    border: 3px solid rgba(0,255,255,0.33);
+    box-shadow: 0 0 calc(30px * var(--screen-glow)) rgba(0,255,255,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0ff;
+    font-size: clamp(0.8em, 2vw, 1.1em);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+  }
 
-.screen-canvas,
-.scanline {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
+  .screen-canvas,
+  .scanline {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
 
-.screen-canvas {
-  opacity: 1;
-  transition: opacity 0.8s ease;
-}
+  .screen-canvas { opacity: 1; transition: opacity 0.8s ease; }
 
-.scanline {
-  mix-blend-mode: screen;
-  background: linear-gradient(to bottom,
-    rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.06) 45%,
-    rgba(255,255,255,0.25) 50%,
-    rgba(255,255,255,0.06) 55%,
-    rgba(255,255,255,0) 100%);
-  opacity: 0.035;
-  transform: translateY(-120%);
-  animation: scan 8s linear infinite;
-  filter: blur(6px) contrast(1.2);
-}
-@keyframes scan {
-  0% { transform: translateY(-120%); }
-  100% { transform: translateY(120%); }
-}
+  .scanline {
+    mix-blend-mode: screen;
+    background: linear-gradient(to bottom,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.06) 45%,
+      rgba(255,255,255,0.25) 50%,
+      rgba(255,255,255,0.06) 55%,
+      rgba(255,255,255,0) 100%);
+    opacity: 0.035;
+    transform: translateY(-120%);
+    animation: scan 8s linear infinite;
+    filter: blur(6px) contrast(1.2);
+  }
+  @keyframes scan {
+    0% { transform: translateY(-120%); }
+    100% { transform: translateY(120%); }
+  }
 
-.flickerOverlay {
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  background: radial-gradient(ellipse at center, rgba(255,255,255,0.02), rgba(255,255,255,0));
-  mix-blend-mode: screen;
-  opacity: 0.5;
-}
+  .flickerOverlay {
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.02), rgba(255,255,255,0));
+    mix-blend-mode: screen;
+    opacity: 0.5;
+  }
 
-.screen .content {
-  position: relative;
-  z-index: 5;
-  padding: 8px 12px;
-  width:100%;
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
+  .screen .content {
+    position: relative;
+    z-index: 5;
+    padding: 8px 12px;
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
 
-.static { animation: staticText 0.15s steps(5) 12; }
-@keyframes staticText {
-  0%,100% { opacity: 1; filter: blur(0); }
-  25% { opacity: 0.3; filter: blur(2px); }
-  50% { opacity: 1; filter: blur(1px); }
-  75% { opacity: 0.6; filter: blur(3px); }
-}
+  .assembled { display:inline-block; white-space:pre-wrap; letter-spacing:0.02em; }
+  .assembled .char {
+    display:inline-block;
+    opacity:0;
+    transform: translateY(6px);
+    filter: blur(6px);
+    transition: opacity 220ms linear, transform 260ms cubic-bezier(.2,.9,.2,1), filter 220ms linear;
+    text-shadow: 0 0 6px rgba(0,255,255,0.15), 0 0 12px rgba(0,255,255,0.04);
+  }
+  .assembled .char.locked { opacity:1; transform: translateY(0); filter: blur(0); }
+  .assembled .char.glitch {
+    animation: charGlitch 180ms steps(2, end) 1;
+    filter: blur(2px);
+    opacity: 0.85;
+  }
+  @keyframes charGlitch {
+    0% { transform: translateY(8px) skewX(-6deg); opacity:0.2; filter: blur(4px); }
+    60% { transform: translateY(-2px) skewX(2deg); opacity:1; filter: blur(1px); }
+    100% { transform: translateY(0) skewX(0deg); opacity:1; filter: blur(0); }
+  }
 
-.assembled { display:inline-block; white-space:pre-wrap; letter-spacing:0.02em; }
-.assembled .char {
-  display:inline-block;
-  opacity:0;
-  transform: translateY(6px);
-  filter: blur(6px);
-  transition: opacity 220ms linear, transform 260ms cubic-bezier(.2,.9,.2,1), filter 220ms linear;
-  text-shadow: 0 0 6px rgba(0,255,255,0.15), 0 0 12px rgba(0,255,255,0.04);
-}
-.assembled .char.locked { opacity:1; transform: translateY(0); filter: blur(0); }
-.assembled .char.glitch {
-  animation: charGlitch 180ms steps(2, end) 1;
-  filter: blur(2px);
-  opacity: 0.85;
-}
-@keyframes charGlitch {
-  0% { transform: translateY(8px) skewX(-6deg); opacity:0.2; filter: blur(4px); }
-  60% { transform: translateY(-2px) skewX(2deg); opacity:1; filter: blur(1px); }
-  100% { transform: translateY(0) skewX(0deg); opacity:1; filter: blur(0); }
-}
+  .dial {
+    width: min(40vw, 160px);
+    height: min(40vw, 160px);
+    background: radial-gradient(circle, #222 0%, #000 90%);
+    border: 4px solid rgba(0,255,255,0.33);
+    border-radius: 50%;
+    margin-top: 8vh;
+    position: relative;
+    box-shadow: 0 0 30px rgba(0,255,255,0.12) inset;
+    cursor: grab;
+    touch-action: none;
+  }
 
-.dial {
-  width: min(40vw, 160px);
-  height: min(40vw, 160px);
-  background: radial-gradient(circle, #222 0%, #000 90%);
-  border: 4px solid rgba(0,255,255,0.33);
-  border-radius: 50%;
-  margin-top: 8vh;
-  position: relative;
-  box-shadow: 0 0 30px rgba(0,255,255,0.12) inset;
-  cursor: grab;
-  touch-action: none;
-}
+  .pointer {
+    position: absolute;
+    width: 4px;
+    height: 30%;
+    background: #0ff;
+    top: 15px;
+    left: calc(50% - 2px);
+    border-radius: 2px;
+    transform-origin: bottom center;
+  }
 
-.pointer {
-  position: absolute;
-  width: 4px;
-  height: 30%;
-  background: #0ff;
-  top: 15px;
-  left: calc(50% - 2px);
-  border-radius: 2px;
-  transform-origin: bottom center;
-}
+  .mist {
+    position: absolute;
+    width: 120vmax;
+    height: 120vmax;
+    top: -30vmin;
+    background: radial-gradient(circle, rgba(0,255,255,0.06) 0%, transparent 70%);
+    filter: blur(100px);
+    animation: drift 20s linear infinite alternate;
+    z-index: 0;
+  }
+  @keyframes drift {
+    from { transform: translateX(-5vw) translateY(0vh); }
+    to { transform: translateX(5vw) translateY(3vh); }
+  }
 
-.mist {
-  position: absolute;
-  width: 120vmax;
-  height: 120vmax;
-  top: -30vmin;
-  background: radial-gradient(circle, rgba(0,255,255,0.06) 0%, transparent 70%);
-  filter: blur(100px);
-  animation: drift 20s linear infinite alternate;
-  z-index: 0;
-}
-
-@keyframes drift {
-  from { transform: translateX(-5vw) translateY(0vh); }
-  to { transform: translateX(5vw) translateY(3vh); }
-}
-
-@media (max-width: 600px) {
-  .screen { width:90vw; height:28vw; font-size: clamp(0.9em, 3vw, 1.1em); }
-  .dial { width:45vw; height:45vw; margin-top:10vh; }
-}
-@media (min-width:900px) and (orientation: landscape) {
-  .screen { width:50vw; height:20vw; }
-  .dial { width:25vw; height:25vw; margin-top:6vh; }
-}
+  @media (max-width: 600px) {
+    .screen { width:90vw; height:28vw; font-size: clamp(0.9em, 3vw, 1.1em); }
+    .dial { width:45vw; height:45vw; margin-top:10vh; }
+  }
+  @media (min-width:900px) and (orientation: landscape) {
+    .screen { width:50vw; height:20vw; }
+    .dial { width:25vw; height:25vw; margin-top:6vh; }
+  }
 </style>
 </head>
 <body>
-<div class="mist"></div>
+  <div class="mist"></div>
 
-<div class="screen" id="screen">
-  <canvas class="screen-canvas" id="staticCanvas"></canvas>
-  <div class="scanline"></div>
-  <div class="flickerOverlay"></div>
-  <div class="content" id="screenContent">~ tuning ~</div>
-</div>
+  <div class="screen" id="screen">
+    <canvas class="screen-canvas" id="staticCanvas"></canvas>
+    <div class="scanline"></div>
+    <div class="flickerOverlay"></div>
+    <div class="content" id="screenContent">~ tuning ~</div>
+  </div>
 
-<div class="dial" id="dial">
-  <div class="pointer" id="pointer"></div>
-</div>
+  <div class="dial" id="dial">
+    <div class="pointer" id="pointer"></div>
+  </div>
 
 <script>
-const screen = document.getElementById('screen');
+/* ------------------ PROMPTS (Easy Management) ------------------ */
+const promptData = {
+  "Goblin Frequencies": {
+    parts: {
+      goblins: ["Grib", "Snort", "Mog", "Kreeg", "Thistle", "Fungrot"],
+      actions: ["ate", "bargained with", "stole from", "sang to", "was cursed by"],
+      objects: ["a glowing rat", "the moon's toenail", "a bucket of screams", "a noble sock"]
+    },
+    template: (p) => `${rand(p.goblins)} ${rand(p.actions)} ${rand(p.objects)}.`
+  },
+  "Dream Residue": {
+    parts: { moods: ["a glass cloud","the scent of thunder","a whisper-shaped candle","a thought that forgot itself"] },
+    template: (p) => `You dreamt of ${rand(p.moods)}.`
+  },
+  "Mortal Mashups": {
+    parts: {
+      roles: ["Knight","DJ","Goblin","Astrologer","Beekeeper"],
+      subjects: ["Vampire","Robot","Chef","Detective","Witch"],
+      places: ["in Space","in a Dungeon","at a Tea Party","during Apocalypse","underwater"]
+    },
+    template: (p) => `${rand(p.roles)} vs ${rand(p.subjects)} ${rand(p.places)}.`
+  },
+  "Haunted Folklore": {
+    parts: {
+      beings: ["The Hollow Piper","The Candle Mare","The Mirror Child","The Bleeding Oak"],
+      phrases: ["walks when no one watches","sings through keyholes","feeds on reflected light","collects forgotten birthdays"]
+    },
+    template: (p) => `${rand(p.beings)} ${rand(p.phrases)}.`
+  },
+  "Void Noise": {
+    parts: {
+      nonsense: ["⧫ ░ø∆Ψ∴ whispers ∵ Ψ∆ø░ ⧫","The void hums, slightly off-key.","Untranslatable frequencies detected..."]
+    },
+    template: (p) => rand(p.nonsense)
+  }
+};
+function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function generatePrompt(channelName){
+  const data = promptData[channelName];
+  if(!data) return "";
+  return data.template(data.parts);
+}
+
+/* ------------------ CORE TUNER LOGIC ------------------ */
 const screenContent = document.getElementById('screenContent');
 const dial = document.getElementById('dial');
 const pointer = document.getElementById('pointer');
 const staticCanvas = document.getElementById('staticCanvas');
+const ctx = staticCanvas.getContext('2d');
 
-let currentAngle=0, dragging=false, lastAngle=0, lastChannel=-1;
+let currentAngle=0,dragging=false,lastAngle=0,lastChannel=-1;
 
-const channels = [
-  { name:"Goblin Frequencies", generator:goblinPrompt },
-  { name:"Dream Residue", generator:dreamPrompt },
-  { name:"Mortal Mashups", generator:mashupPrompt },
-  { name:"Haunted Folklore", generator:folklorePrompt },
-  { name:"Void Noise", generator:voidPrompt }
-];
+const channels = Object.keys(promptData).map(name=>({name}));
 
-function goblinPrompt(){ const g=["Grib","Snort","Mog","Kreeg","Thistle","Fungrot"], a=["ate","bargained with","stole from","sang to","was cursed by"], o=["a glowing rat","the moon's toenail","a bucket of screams","a noble sock"]; return `${rand(g)} ${rand(a)} ${rand(o)}.`; }
-function dreamPrompt(){ const m=["a glass cloud","the scent of thunder","a whisper-shaped candle","a thought that forgot itself"]; return `You dreamt of ${rand(m)}.`; }
-function mashupPrompt(){ const r=["Knight","DJ","Goblin","Astrologer","Beekeeper"], s=["Vampire","Robot","Chef","Detective","Witch"], p=["in Space","in a Dungeon","at a Tea Party","during Apocalypse","underwater"]; return `${rand(r)} vs ${rand(s)} ${rand(p)}.`; }
-function folklorePrompt(){ const b=["The Hollow Piper","The Candle Mare","The Mirror Child","The Bleeding Oak"], p=["walks when no one watches","sings through keyholes","feeds on reflected light","collects forgotten birthdays"]; return `${rand(b)} ${rand(p)}.`; }
-function voidPrompt(){ const n=["⧫ ░ø∆Ψ∴ whispers ∵ Ψ∆ø░ ⧫","The void hums, slightly off-key.","Untranslatable frequencies detected..."]; return rand(n); }
-function rand(a){return a[Math.floor(Math.random()*a.length)];}
-
-/* Dial input */
 function angleFromEvent(e){
-  const rect=dial.getBoundingClientRect(), cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+  const rect=dial.getBoundingClientRect();
+  const cx=rect.left+rect.width/2;
+  const cy=rect.top+rect.height/2;
   const clientX=e.touches?e.touches[0].clientX:e.clientX;
   const clientY=e.touches?e.touches[0].clientY:e.clientY;
-  return Math.atan2(clientY-cy, clientX-cx)*180/Math.PI;
+  const dx=clientX-cx, dy=clientY-cy;
+  return Math.atan2(dy,dx)*180/Math.PI;
 }
 
-dial.addEventListener('mousedown', startDrag);
-dial.addEventListener('touchstart', startDrag, { passive: true });
-document.addEventListener('mouseup', endDrag);
-document.addEventListener('touchend', endDrag);
-document.addEventListener('mousemove', drag);
-document.addEventListener('touchmove', drag, { passive: true });
+dial.addEventListener('mousedown',startDrag);
+dial.addEventListener('touchstart',startDrag,{passive:true});
+document.addEventListener('mouseup',endDrag);
+document.addEventListener('touchend',endDrag);
+document.addEventListener('mousemove',drag);
+document.addEventListener('touchmove',drag,{passive:true});
 
-function startDrag(e){ dragging=true; lastAngle=angleFromEvent(e); dial.style.cursor='grabbing'; }
-function endDrag(){ dragging=false; dial.style.cursor='grab'; }
-function drag(e){ if(!dragging) return; const newAngle=angleFromEvent(e); const delta=newAngle-lastAngle; currentAngle=(currentAngle+delta)%360; lastAngle=newAngle; pointer.style.transform=`rotate(${currentAngle}deg)`; checkChannel(); }
+function startDrag(e){dragging=true;lastAngle=angleFromEvent(e);dial.style.cursor='grabbing';}
+function endDrag(){dragging=false;dial.style.cursor='grab';}
+function drag(e){
+  if(!dragging) return;
+  const newAngle=angleFromEvent(e);
+  const delta=newAngle-lastAngle;
+  currentAngle=(currentAngle+delta)%360;
+  lastAngle=newAngle;
+  pointer.style.transform=`rotate(${currentAngle}deg)`;
+  checkChannel();
+}
 
-/* Channel switching */
+/* ---- Channel switching ---- */
 function checkChannel(){
-  const seg=360/channels.length;
-  const idx=Math.floor((currentAngle+360)%360/seg);
-  if(idx!==lastChannel){
-    lastChannel=idx;
-    const ch=channels[idx];
+  const segmentSize=360/channels.length;
+  const channelIndex=Math.floor((currentAngle+360)%360/segmentSize);
+  if(channelIndex!==lastChannel){
+    lastChannel=channelIndex;
+    const channel=channels[channelIndex];
     fadeInStatic();
-    showStatic(ch.name);
-    setTimeout(()=>displayPhrase(ch.generator()),600);
+    showStatic(channel.name);
+    setTimeout(()=>displayPhrase(generatePrompt(channel.name)),600);
   }
 }
-
 function showStatic(label){
   screenContent.textContent=`~ ${label} ~`;
-  screenContent.classList.add('static');
-  setTimeout(()=>screenContent.classList.remove('static'),400);
 }
 
-/* Static Canvas */
-const ctx=staticCanvas.getContext('2d');
+/* ---- Static ---- */
+let staticRAF=null;
 function setupStaticCanvas(){
   const rect=staticCanvas.getBoundingClientRect();
   const scale=Math.max(1,window.devicePixelRatio||1);
-  const w=Math.max(80,Math.floor(rect.width/6)), h=Math.max(40,Math.floor(rect.height/6));
-  staticCanvas.width=w*scale;
-  staticCanvas.height=h*scale;
+  const internalW=Math.max(80,Math.floor(rect.width/6));
+  const internalH=Math.max(40,Math.floor(rect.height/6));
+  staticCanvas.width=internalW*scale;
+  staticCanvas.height=internalH*scale;
   ctx.setTransform(scale,0,0,scale,0,0);
   ctx.imageSmoothingEnabled=false;
 }
-
 function drawStatic(){
   const w=staticCanvas.width/(window.devicePixelRatio||1);
   const h=staticCanvas.height/(window.devicePixelRatio||1);
   ctx.fillStyle='rgba(0,0,0,0.08)';
   ctx.fillRect(0,0,w,h);
-  const px=Math.floor(w*h*0.03);
-  for(let i=0;i<px;i++){
-    const x=Math.floor(Math.random()*w), y=Math.floor(Math.random()*h);
+  const density=0.03;
+  const pxToSet=Math.floor(w*h*density);
+  for(let i=0;i<pxToSet;i++){
+    const x=Math.floor(Math.random()*w);
+    const y=Math.floor(Math.random()*h);
     const v=Math.random()<0.06?255:(120+Math.floor(Math.random()*120));
     ctx.fillStyle=`rgba(${v},${v},${v},${0.9*Math.random()})`;
     ctx.fillRect(x,y,1,1);
@@ -276,28 +302,11 @@ function drawStatic(){
   ctx.globalCompositeOperation='source-over';
   staticRAF=requestAnimationFrame(drawStatic);
 }
-let staticRAF=null;
 function fadeOutStatic(){ staticCanvas.style.opacity=0; }
 function fadeInStatic(){ staticCanvas.style.opacity=1; }
 
-/* Flicker Glow */
-let flickerTimer=null;
-function startFlicker(){
-  function tick(){
-    const val=(0.55+Math.random()*0.5).toFixed(3);
-    document.documentElement.style.setProperty('--screen-glow',val);
-    const overlay=document.querySelector('.flickerOverlay');
-    if(overlay) overlay.style.opacity=(0.25+Math.random()*0.45).toString();
-    flickerTimer=setTimeout(tick,120+Math.random()*420);
-  }
-  tick();
-}
-function stopFlicker(){ clearTimeout(flickerTimer); }
-
-/* Text Assembly */
+/* ---- Text Animation ---- */
 function displayPhrase(text){
-  if(window._charRevealTimers){ window._charRevealTimers.forEach(t=>clearTimeout(t)); }
-  window._charRevealTimers=[];
   screenContent.innerHTML='';
   const container=document.createElement('div');
   container.className='assembled';
@@ -317,63 +326,43 @@ function displayPhrase(text){
     const t=setTimeout(()=>{
       const span=container.children[idx];
       span.classList.add('glitch');
-      setTimeout(()=>{
-        span.classList.remove('glitch');
-        span.classList.add('locked');
-      },120+Math.random()*160);
+      setTimeout(()=>{ span.classList.remove('glitch'); span.classList.add('locked'); },120+Math.random()*160);
     },order*baseDelay+Math.random()*80);
-    window._charRevealTimers.push(t);
   });
 
   const totalDuration=indices.length*baseDelay+400;
   setTimeout(()=>{
     fadeOutStatic();
-
-    // Subtle settle-in glow using text-shadow (safe on mobile)
-    const glowLayer=document.createElement('span');
-    glowLayer.style.position='absolute';
-    glowLayer.style.inset='0';
-    glowLayer.style.pointerEvents='none';
-    glowLayer.style.textShadow='0 0 8px rgba(0,255,255,0.25), 0 0 16px rgba(0,255,255,0.12)';
-    glowLayer.style.transition='opacity 1.5s ease-out';
-    container.appendChild(glowLayer);
-    setTimeout(()=>glowLayer.style.opacity='0',1500);
+    // Subtle glow settle
+    container.animate([
+      { textShadow:'0 0 4px rgba(0,255,255,0.1)' },
+      { textShadow:'0 0 12px rgba(0,255,255,0.4)' },
+      { textShadow:'0 0 4px rgba(0,255,255,0.15)' }
+    ],{duration:2000,easing:'ease-in-out'});
   },totalDuration);
 
-  // Reduced random flicker
+  // gentler random flicker
   const flickerLoop=()=>{
-    const shouldFlicker=Math.random()<0.25;
-    if(shouldFlicker){
-      const flickCount=Math.floor(Math.random()*2)+1;
-      for(let i=0;i<flickCount;i++){
-        const j=Math.floor(Math.random()*chars.length);
-        const s=container.children[j];
-        if(!s) continue;
-        s.classList.add('glitch');
-        setTimeout(()=>s.classList.remove('glitch'),150+Math.random()*220);
-      }
+    if(Math.random()<0.25){
+      const j=Math.floor(Math.random()*chars.length);
+      const s=container.children[j];
+      if(s){ s.classList.add('glitch'); setTimeout(()=>s.classList.remove('glitch'),150+Math.random()*220); }
     }
-    if(window._charRevealTimers && window._charRevealTimers.length>0){
-      setTimeout(flickerLoop,800+Math.random()*1600);
-    }
+    setTimeout(flickerLoop,800+Math.random()*1600);
   };
   flickerLoop();
 }
-
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
-/* Init */
-function initOverlays(){
+/* ---- Init ---- */
+function initStatic(){
   setupStaticCanvas();
   if(!staticRAF) staticRAF=requestAnimationFrame(drawStatic);
-  startFlicker();
 }
-window.addEventListener('resize',()=>{if(staticRAF)cancelAnimationFrame(staticRAF);staticRAF=null;clearTimeout(window._resizeTimer);window._resizeTimer=setTimeout(initOverlays,120);});
-window.addEventListener('orientationchange',()=>{clearTimeout(window._resizeTimer);window._resizeTimer=setTimeout(initOverlays,180);});
-
-initOverlays();
+window.addEventListener('resize',()=>{if(staticRAF)cancelAnimationFrame(staticRAF);staticRAF=null;clearTimeout(window._resizeTimer);window._resizeTimer=setTimeout(initStatic,120);});
+window.addEventListener('orientationchange',()=>{clearTimeout(window._resizeTimer);window._resizeTimer=setTimeout(initStatic,180);});
+initStatic();
 setTimeout(()=>displayPhrase('~ tuning ~'),300);
-window.addEventListener('beforeunload',()=>{if(staticRAF)cancelAnimationFrame(staticRAF);stopFlicker();});
 </script>
 </body>
 </html>
