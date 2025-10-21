@@ -2,401 +2,240 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Mystic Radio Tuner — Enhanced Audio + Particles</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Mystic Radio Tuner</title>
 <style>
-:root {
-  --screen-glow: 0.6;
-}
-html,body {
-  height:100%; margin:0;
-}
 body {
-  background: radial-gradient(circle at center, #050505 30%, #000 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  background: radial-gradient(circle at center, #020202 40%, #000 100%);
+  margin: 0; height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
   font-family: "Courier New", monospace;
   color: #0ff;
   overflow: hidden;
-  touch-action: none;
 }
 
-/* ---- SCREEN ---- */
+/* --- Screen --- */
 .screen {
-  width: min(80vw, 440px);
-  height: min(25vw, 160px);
+  position: relative;
+  width: 420px; height: 150px;
   background: #001;
-  border: 3px solid rgba(0,255,255,0.33);
-  box-shadow: 0 0 calc(30px * var(--screen-glow)) rgba(0,255,255,0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #0ff;
-  font-size: clamp(0.8em, 2vw, 1.1em);
+  border: 3px solid rgba(0,255,255,0.3);
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
   text-align: center;
-  position: relative;
+  font-size: 1rem;
   overflow: hidden;
-  border-radius: 8px;
 }
-.screen-canvas, .scanline {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-}
-.screen-canvas {
-  opacity: 1;
-  transition: opacity 0.8s ease;
-}
+#staticCanvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; transition:opacity .6s ease; }
 .scanline {
-  mix-blend-mode: screen;
-  background: linear-gradient(to bottom,
-    rgba(255,255,255,0) 0%,
-    rgba(255,255,255,0.06) 45%,
-    rgba(255,255,255,0.25) 50%,
-    rgba(255,255,255,0.06) 55%,
-    rgba(255,255,255,0) 100%);
-  opacity: 0.035;
-  transform: translateY(-120%);
-  animation: scan 8s linear infinite;
-  filter: blur(6px) contrast(1.2);
+  position:absolute; inset:0; pointer-events:none;
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
+  opacity:0.05; animation: scan 8s linear infinite;
 }
-@keyframes scan {
-  0% { transform: translateY(-120%); }
-  100% { transform: translateY(120%); }
-}
+@keyframes scan { 0%{transform:translateY(-100%);} 100%{transform:translateY(100%);} }
+.flickerOverlay { position:absolute; inset:0; background:rgba(255,255,255,0.015); mix-blend-mode:overlay; animation:flicker 5s ease-in-out infinite; }
+@keyframes flicker { 0%,100%{opacity:.4;} 50%{opacity:.6;} }
 
-.flickerOverlay {
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  background: radial-gradient(ellipse at center, rgba(255,255,255,0.02), rgba(255,255,255,0));
-  mix-blend-mode: screen;
-  opacity: 0.5;
-  animation: flickerPulse 6s infinite ease-in-out;
-}
-@keyframes flickerPulse {
-  0%,100% { opacity:0.45; }
-  50% { opacity:0.55; }
-}
-
-/* ---- PARTICLES ---- */
-.particles {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-.particle {
-  position: absolute;
-  bottom: -10px;
-  width: 2px; height: 8px;
-  background: rgba(0,255,255,0.15);
-  filter: blur(2px);
-  animation: rise 12s linear infinite;
-}
-@keyframes rise {
-  from { transform: translateY(0) scale(0.8); opacity: 0.2; }
-  to { transform: translateY(-120vh) scale(1.2); opacity: 0; }
-}
-
-/* ---- CONTENT ---- */
-.screen .content {
-  position: relative; z-index: 5;
-  padding: 8px 12px;
-  width:100%; height:100%;
-  display:flex; align-items:center; justify-content:center;
-}
-.assembled {
-  display:inline-block;
-  white-space:pre-wrap;
-  letter-spacing:0.02em;
-}
+/* --- Text animation --- */
 .assembled .char {
-  display:inline-block;
-  opacity:0;
-  transform: translateY(6px);
-  filter: blur(6px);
-  transition: opacity 220ms linear, transform 260ms cubic-bezier(.2,.9,.2,1), filter 220ms linear;
-  text-shadow: 0 0 6px rgba(0,255,255,0.15), 0 0 12px rgba(0,255,255,0.04);
+  display:inline-block; opacity:0; transform:translateY(5px); filter:blur(3px);
+  transition:opacity .2s, transform .2s, filter .2s;
 }
-.assembled .char.locked { opacity:1; transform: translateY(0); filter: blur(0); }
-.assembled .char.glitch {
-  animation: charGlitch 180ms steps(2,end) 1;
-  filter: blur(2px);
-  opacity: 0.85;
-}
-@keyframes charGlitch {
-  0% { transform: translateY(8px) skewX(-6deg); opacity:0.2; filter: blur(4px); }
-  60% { transform: translateY(-2px) skewX(2deg); opacity:1; filter: blur(1px); }
-  100% { transform: translateY(0) skewX(0deg); opacity:1; filter: blur(0); }
-}
+.assembled .char.locked { opacity:1; transform:none; filter:none; }
 
-/* ---- DIAL + VOLUME ---- */
-.dial-container {
-  display: flex;
-  align-items: center;
-  gap: 40px;
-  margin-top: 8vh;
-}
+/* --- Dial --- */
+.dial-container { display:flex; align-items:center; gap:40px; margin-top:50px; }
 .dial {
-  width: min(40vw, 160px);
-  height: min(40vw, 160px);
-  background: radial-gradient(circle, #222 0%, #000 90%);
-  border: 4px solid rgba(0,255,255,0.33);
-  border-radius: 50%;
-  position: relative;
-  box-shadow: 0 0 30px rgba(0,255,255,0.12) inset;
-  cursor: grab;
-  touch-action: none;
+  width:160px; height:160px;
+  background: radial-gradient(circle,#222 0%,#000 90%);
+  border:4px solid rgba(0,255,255,0.3);
+  border-radius:50%;
+  position:relative; cursor:grab;
+  box-shadow:inset 0 0 25px rgba(0,255,255,0.15);
 }
 .pointer {
-  position: absolute;
-  width: 4px; height: 30%;
-  background: #0ff;
-  top: 15px; left: calc(50% - 2px);
-  border-radius: 2px;
-  transform-origin: bottom center;
+  position:absolute; width:4px; height:35%;
+  top:10%; left:calc(50% - 2px);
+  background:#0ff; border-radius:2px;
+  transform-origin:bottom center;
+  transition:transform .05s linear;
 }
+
+/* --- Volume slider --- */
 .volume-slider {
-  appearance: none;
-  width: 8px;
-  height: 120px;
-  background: linear-gradient(to top, #033, #0ff);
-  border-radius: 6px;
-  outline: none;
-  box-shadow: 0 0 10px rgba(0,255,255,0.2);
+  appearance:none;
+  width:8px; height:120px;
+  background: linear-gradient(to top,#022,#0ff);
+  border-radius:8px; box-shadow:0 0 8px rgba(0,255,255,0.2);
 }
 .volume-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 16px; height: 16px;
-  background: #0ff;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 0 8px rgba(0,255,255,0.5);
-}
-.volume-slider:active::-webkit-slider-thumb {
-  box-shadow: 0 0 12px rgba(0,255,255,0.9);
-}
-
-.mist {
-  position: absolute;
-  width: 120vmax; height: 120vmax;
-  top: -30vmin;
-  background: radial-gradient(circle, rgba(0,255,255,0.06) 0%, transparent 70%);
-  filter: blur(100px);
-  animation: drift 20s linear infinite alternate;
-  z-index: 0;
-}
-@keyframes drift {
-  from { transform: translateX(-5vw) translateY(0vh); }
-  to { transform: translateX(5vw) translateY(3vh); }
-}
-
-@media (max-width: 600px) {
-  .screen { width:90vw; height:28vw; font-size: clamp(0.9em, 3vw, 1.1em); }
-  .dial { width:45vw; height:45vw; }
+  appearance:none; width:16px; height:16px;
+  background:#0ff; border-radius:50%; cursor:pointer;
+  box-shadow:0 0 10px rgba(0,255,255,0.4);
 }
 </style>
 </head>
-
 <body>
-<div class="mist"></div>
-<div class="particles" id="particles"></div>
+
 <div class="screen" id="screen">
-  <canvas class="screen-canvas" id="staticCanvas"></canvas>
+  <canvas id="staticCanvas"></canvas>
   <div class="scanline"></div>
   <div class="flickerOverlay"></div>
-  <div class="content" id="screenContent">~ tuning ~</div>
+  <div id="screenContent">~ tuning ~</div>
 </div>
 
 <div class="dial-container">
-  <input type="range" min="0" max="1" step="0.01" value="0.7" orient="vertical" class="volume-slider" id="volumeControl">
+  <input type="range" min="0" max="1" step="0.01" value="0.6" class="volume-slider" id="volumeControl" orient="vertical">
   <div class="dial" id="dial"><div class="pointer" id="pointer"></div></div>
 </div>
 
 <script>
-/* ---- SOUND SETUP ---- */
-const bgMusic = new Audio('sounds/background.mp3');
-bgMusic.loop = true;
-bgMusic.volume = 0.7;
-bgMusic.play().catch(()=>{ /* user gesture needed */ });
+// ---------- SOUND SETUP ----------
+const bgMusic = new Audio("sounds/background.mp3");
+const radioScroll = new Audio("sounds/radioscrolling.mp3");
+bgMusic.loop = true; bgMusic.volume = 0.6;
+radioScroll.loop = true; radioScroll.volume = 0.6;
+let audioInitialized = false;
 
-const radioScroll = new Audio('sounds/radioscrolling.mp3');
-radioScroll.loop = true;
-radioScroll.volume = 0.7;
-
-let isScrolling = false;
-function startRadioSound() {
-  if (!isScrolling) {
-    isScrolling = true;
-    radioScroll.currentTime = 0;
-    radioScroll.play().catch(()=>{});
+function initAudio() {
+  if (!audioInitialized) {
+    audioInitialized = true;
+    bgMusic.play().catch(()=>{});
   }
 }
-function stopRadioSound() {
-  if (isScrolling) {
-    isScrolling = false;
-    let fade = setInterval(()=>{
-      if (radioScroll.volume > 0.05) radioScroll.volume -= 0.05;
-      else { radioScroll.pause(); radioScroll.volume = document.getElementById('volumeControl').value; clearInterval(fade); }
-    }, 50);
-  }
-}
+document.body.addEventListener("click", initAudio, { once: true });
 
-/* ---- VOLUME SLIDER ---- */
-const volumeControl = document.getElementById('volumeControl');
-volumeControl.addEventListener('input', () => {
-  const v = parseFloat(volumeControl.value);
-  bgMusic.volume = v;
-  radioScroll.volume = v;
+// Volume control
+const volumeSlider = document.getElementById("volumeControl");
+volumeSlider.addEventListener("input", e=>{
+  const vol = parseFloat(e.target.value);
+  bgMusic.volume = vol;
+  radioScroll.volume = vol;
 });
 
-/* ---- PARTICLES ---- */
-function createParticles() {
-  const container = document.getElementById('particles');
-  for (let i=0;i<40;i++){
-    const p=document.createElement('div');
-    p.className='particle';
-    p.style.left=Math.random()*100+'%';
-    p.style.animationDelay=(Math.random()*10)+'s';
-    p.style.animationDuration=(10+Math.random()*10)+'s';
-    container.appendChild(p);
+// ---------- STATIC CANVAS ----------
+const staticCanvas = document.getElementById("staticCanvas");
+const ctx = staticCanvas.getContext("2d");
+function resizeStatic() {
+  staticCanvas.width = staticCanvas.offsetWidth;
+  staticCanvas.height = staticCanvas.offsetHeight;
+}
+window.addEventListener("resize", resizeStatic);
+resizeStatic();
+
+let staticRunning = false;
+function drawStatic() {
+  if (!staticRunning) return;
+  const w = staticCanvas.width, h = staticCanvas.height;
+  const imgData = ctx.createImageData(w,h);
+  const d = imgData.data;
+  for (let i=0;i<d.length;i+=4){
+    const v = Math.random()<0.04?255:Math.random()*180;
+    d[i]=d[i+1]=d[i+2]=v; d[i+3]=255;
   }
+  ctx.putImageData(imgData,0,0);
+  requestAnimationFrame(drawStatic);
 }
-createParticles();
+function startStatic() { staticRunning = true; drawStatic(); staticCanvas.style.opacity=1; }
+function stopStatic() { staticRunning = false; staticCanvas.style.opacity=0; }
 
-/* ---- EXISTING SCRIPT BELOW (unchanged except sound hooks) ---- */
-const promptData = { /* your existing promptData stays unchanged */ };
+// ---------- DIAL + PROMPT ----------
+const dial = document.getElementById("dial");
+const pointer = document.getElementById("pointer");
+const screenContent = document.getElementById("screenContent");
 
-function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function generatePrompt(channelName){ const data=promptData[channelName]; if(!data) return ""; return data.template(data.parts); }
-
-const screenContent=document.getElementById('screenContent');
-const dial=document.getElementById('dial');
-const pointer=document.getElementById('pointer');
-const staticCanvas=document.getElementById('staticCanvas');
-const ctx=staticCanvas.getContext('2d');
-let currentAngle=0,dragging=false,lastAngle=0,lastChannel=-1;
-const channels=Object.keys(promptData).map(name=>({name}));
-
+let dragging=false, lastAngle=0, currentAngle=0, lastChannel=-1;
+const channels=["Dream Residue"]; // just one for now
 function angleFromEvent(e){
-  const rect=dial.getBoundingClientRect();
-  const cx=rect.left+rect.width/2;
-  const cy=rect.top+rect.height/2;
-  const clientX=e.touches?e.touches[0].clientX:e.clientX;
-  const clientY=e.touches?e.touches[0].clientY:e.clientY;
-  const dx=clientX-cx, dy=clientY-cy;
-  return Math.atan2(dy,dx)*180/Math.PI;
+  const rect = dial.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  const x = (e.touches?e.touches[0].clientX:e.clientX) - cx;
+  const y = (e.touches?e.touches[0].clientY:e.clientY) - cy;
+  return Math.atan2(y,x)*180/Math.PI;
 }
 
-dial.addEventListener('mousedown',startDrag);
-dial.addEventListener('touchstart',startDrag,{passive:true});
-document.addEventListener('mouseup',endDrag);
-document.addEventListener('touchend',endDrag);
-document.addEventListener('mousemove',drag);
-document.addEventListener('touchmove',drag,{passive:true});
+dial.addEventListener("mousedown",startDrag);
+dial.addEventListener("touchstart",startDrag,{passive:true});
+document.addEventListener("mouseup",endDrag);
+document.addEventListener("touchend",endDrag);
+document.addEventListener("mousemove",drag);
+document.addEventListener("touchmove",drag,{passive:true});
 
-function startDrag(e){ dragging=true; lastAngle=angleFromEvent(e); dial.style.cursor='grabbing'; startRadioSound(); }
-function endDrag(){ dragging=false; dial.style.cursor='grab'; stopRadioSound(); }
+function startDrag(e){
+  initAudio();
+  dragging=true;
+  lastAngle=angleFromEvent(e);
+  dial.style.cursor="grabbing";
+  radioScroll.currentTime=0;
+  radioScroll.play().catch(()=>{});
+}
+function endDrag(){
+  dragging=false;
+  dial.style.cursor="grab";
+  radioScroll.pause();
+}
 function drag(e){
   if(!dragging) return;
-  const newAngle=angleFromEvent(e);
-  const delta=newAngle-lastAngle;
+  const a=angleFromEvent(e);
+  const delta=a-lastAngle;
   currentAngle=(currentAngle+delta)%360;
-  lastAngle=newAngle;
+  lastAngle=a;
   pointer.style.transform=`rotate(${currentAngle}deg)`;
   checkChannel();
 }
 
-/* ---- Channel switching ---- */
 function checkChannel(){
-  const segmentSize=360/channels.length;
-  const channelIndex=Math.floor((currentAngle+360)%360/segmentSize);
-  if(channelIndex!==lastChannel){
-    lastChannel=channelIndex;
-    const channel=channels[channelIndex];
-    fadeInStatic();
-    showStatic(channel.name);
-    setTimeout(()=>displayPhrase(generatePrompt(channel.name)),600);
+  const index = 0; // only one channel now
+  if(index!==lastChannel){
+    lastChannel=index;
+    startStatic();
+    showStatic(channels[index]);
+    setTimeout(()=>displayPhrase(generatePrompt()),600);
   }
 }
-function showStatic(label){ screenContent.textContent=`~ ${label} ~`; }
 
-/* ---- Static ---- */
-let staticRAF=null;
-function setupStaticCanvas(){
-  const rect=staticCanvas.getBoundingClientRect();
-  const scale=Math.max(1,window.devicePixelRatio||1);
-  const internalW=Math.max(80,Math.floor(rect.width/6));
-  const internalH=Math.max(40,Math.floor(rect.height/6));
-  staticCanvas.width=internalW*scale;
-  staticCanvas.height=internalH*scale;
-  ctx.setTransform(scale,0,0,scale,0,0);
-  ctx.imageSmoothingEnabled=false;
+function showStatic(name){
+  screenContent.textContent = `~ ${name} ~`;
 }
-function drawStatic(){
-  const w=staticCanvas.width/(window.devicePixelRatio||1);
-  const h=staticCanvas.height/(window.devicePixelRatio||1);
-  ctx.fillStyle='rgba(0,0,0,0.08)';
-  ctx.fillRect(0,0,w,h);
-  const density=0.03;
-  const pxToSet=Math.floor(w*h*density);
-  for(let i=0;i<pxToSet;i++){
-    const x=Math.floor(Math.random()*w);
-    const y=Math.floor(Math.random()*h);
-    const v=Math.random()<0.06?255:(120+Math.floor(Math.random()*120));
-    ctx.fillStyle=`rgba(${v},${v},${v},${0.9*Math.random()})`;
-    ctx.fillRect(x,y,1,1);
-  }
-  ctx.globalCompositeOperation='lighter';
-  ctx.fillStyle='rgba(0,255,255,0.002)';
-  ctx.fillRect(0,0,w,h);
-  ctx.globalCompositeOperation='source-over';
-  staticRAF=requestAnimationFrame(drawStatic);
-}
-function fadeOutStatic(){ staticCanvas.style.opacity=0; }
-function fadeInStatic(){ staticCanvas.style.opacity=1; }
 
-/* ---- Text Animation ---- */
 function displayPhrase(text){
-  screenContent.innerHTML='';
-  const container=document.createElement('div');
-  container.className='assembled';
+  stopStatic();
+  screenContent.innerHTML="";
+  const container=document.createElement("div");
+  container.className="assembled";
   screenContent.appendChild(container);
-  const chars=Array.from(text);
+  const chars=[...text];
   chars.forEach(ch=>{
-    const span=document.createElement('span');
-    span.className='char';
-    span.textContent=ch===' '?' ':ch;
+    const span=document.createElement("span");
+    span.className="char"; span.textContent=ch;
     container.appendChild(span);
   });
-  const indices=chars.map((_,i)=>i);
-  shuffle(indices);
-  const baseDelay=80;
-  indices.forEach((idx,order)=>{
-    const t=setTimeout(()=>{
-      const span=container.children[idx];
-      span.classList.add('glitch');
-      setTimeout(()=>{
-        span.classList.remove('glitch');
-        span.classList.add('locked');
-      },120+Math.random()*160);
-    },order*baseDelay+Math.random()*80);
-  });
-  const totalDuration=indices.length*baseDelay+400;
-  setTimeout(()=>{ fadeOutStatic(); },totalDuration);
+  let i=0;
+  const timer=setInterval(()=>{
+    if(i>=chars.length){clearInterval(timer);return;}
+    container.children[i].classList.add("locked");
+    i++;
+  },50);
 }
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
-/* ---- Init ---- */
-function initStatic(){ setupStaticCanvas(); if(!staticRAF) staticRAF=requestAnimationFrame(drawStatic); }
-window.addEventListener('resize',()=>{if(staticRAF)cancelAnimationFrame(staticRAF);staticRAF=null;clearTimeout(window._resizeTimer);window._resizeTimer=setTimeout(initStatic,120);});
-initStatic();
-setTimeout(()=>displayPhrase('~ tuning ~'),300);
+// ---------- PROMPT GENERATOR ----------
+const dreamResidue = {
+  roles:["Frog","Elephant","Boar","Raven","Giraffe","Tapir","Weasel","Otter","Beaver","Buffalo","Cow","Spider","Rabbit","Dog","Dinosaur","Octopus","Penguin","Crab","Cat","Bear","Lion","Badgers","Xenomorph","Android","Shark","Unicorn","Shrimp","Raccoon","Turtle","Rat","Pony","Tiger","Ant","Bat","Koala","Sloth","Dragon","Chinchilla","Skeleton","Pigeon","Lobster","Walrus","Armadillo","Chicken","Goblin","Dog","Mermaid","Centaur","Werewolf","Vampire Bat","Gnome","Fairy","Alien Blob","Robot Dog","Mutant Hamster","Zombie Cat","Cyborg Chicken","Mini Dragon","Space Slug","Tentacle Monster","Flying Fish","Talking Donkey","Living Rock","A Painting of a","Haunted Doll","Giant Rat","Fire Sprite","Ice Golem","Shadow Beast","Moon Rabbit","Pumpkin Monster","Cosmic Owl","Time Traveler","Ghost Parrot","Invisible Cat","Frost Troll","Sand Worm","Giant Spider","Banana Knight","Chocolate Ogre","Cheese Dragon","Sock Monster","Killer Whale","Fox","Neon Tiger","Gummy Bear","Jellyfish","Vortex Frog","Crazy Chicken"],
+  subjects:["Knight","Wizard","Healer","Archer","Bard","Thief","Necromancer","Paladin","Barbarian","Alchemist","Engineer","Inventor","Pilot","Captain","Admiral","Navigator","Spy","Assassin","Scout","Soldier","General","Guard","Jester","King","Queen","Prince","Princess","Peasant","Farmer","Blacksmith","Miner","Merchant","Scholar","Librarian","Teacher","Student","Priest","Monk","Oracle","Prophet","Shaman","Druid","Hunter","Fisherman","Cook","Butcher","Baker","Brewer","Innkeeper","Explorer","Cartographer","Sailor","Pirate","Smuggler","Outlaw","Sheriff","Detective","Doctor","Nurse","Witch Doctor","Mechanic","Taxi Driver","Racer","Athlete","Gladiator","Champion","Wrestler","Boxer","Samurai","Ninja","Magician","Hero","Villain","Diplomat","Judge","Lawyer","Zombie","Vampire","Robot","Alien","Time Traveler","Storyteller","Painter","Musician","Dreamer","Visionary","Spirit Guardian","Elemental","CEO","Sock Puppet","Kaiju","Transforming","Hippy"],
+  actions:["dancing","sleeping","baking cupcakes","painting","singing","fighting","building a Lego set","haunting","surfing","shopping","reading","climbing","eating cheese","solving a mystery","slaying","playing football","comparing hats","casting spells","summoning a storm","building a time machine","hacking a computer","climbing a volcano","riding a giant snail","teleporting","playing hide and seek","chasing shadows","taming a dragon","stealing treasure","creating a potion","swinging on vines","painting graffiti","singing opera","writing a novel","inventing gadgets","dueling with swords","feeding unicorns","swimming with sharks","playing pranks","testing a jetpack","fighting off zombies","wrangling ghosts","building a cheese fortress","stealing a crown","conducting an orchestra","driving a UFO"],
+  contexts:["in the Congo","at a TED convention","in a castle","in a spaceship","on the moon","in a haunted house","in a circus","in a swamp","in a library","in a volcano","in a coffee shop","at a wedding","at a funeral","in a classroom","on a pirate ship","on stage","in a candy store","in a pub","at Disney World","in the big city","in a thrift store","on the subway","in hell","at the laundromat","in a gladiator arena","on a cloud","underwater in Atlantis","on a flying carpet","in a haunted forest","at a zombie apocalypse","during a snowstorm","on a rollercoaster","in a neon city","inside a video game","on a space station","on a tropical island","in a secret laboratory","inside a giant robot","at a superhero battle","on a floating island"]
+};
+
+function rand(a){return a[Math.floor(Math.random()*a.length)];}
+function generatePrompt(){
+  return `${rand(dreamResidue.roles)} ${rand(dreamResidue.subjects)} ${rand(dreamResidue.actions)} ${rand(dreamResidue.contexts)}.`;
+}
+
+// start initial static
+startStatic();
 </script>
 </body>
 </html>
