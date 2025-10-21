@@ -19,9 +19,8 @@
   }
 
   .screen {
-    width: 440px;
-    max-width: 90vw;
-    height: 160px;
+    width: min(90vw, 440px);
+    height: min(25vh, 160px);
     background: #001;
     border: 3px solid #0ff5;
     box-shadow: 0 0 30px #0ff2;
@@ -35,22 +34,27 @@
     overflow: hidden;
   }
 
-  .screen::after {
-    content: "";
+  .scanline {
     position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      rgba(255,255,255,0.03) 0px,
-      rgba(255,255,255,0.03) 2px,
-      rgba(0,0,0,0.05) 3px
-    );
-    animation: flicker 0.25s infinite;
+    top: -50%;
+    left: 0;
+    width: 100%;
+    height: 200%;
+    background: linear-gradient(to bottom, transparent 48%, rgba(255,255,255,0.03) 50%, transparent 52%);
+    animation: scan 4s linear infinite;
     pointer-events: none;
   }
 
-  @keyframes flicker {
-    0%,100% { opacity: 0.9; }
-    50% { opacity: 0.6; }
+  @keyframes scan {
+    from { transform: translateY(-50%); }
+    to { transform: translateY(0%); }
+  }
+
+  .staticCanvas, .whisperCanvas {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
   }
 
   .dial {
@@ -102,24 +106,31 @@
     to { transform: translateX(100px) translateY(50px); }
   }
 
-  .assembled {
-    transition: opacity 0.5s ease;
+  .assembled span {
+    opacity: 0;
+    display: inline-block;
+    animation: assemble 0.05s linear forwards;
   }
 
-  .fade-out {
-    opacity: 0;
+  @keyframes assemble {
+    to { opacity: 1; filter: blur(0); }
   }
 </style>
 </head>
 <body>
   <div class="mist"></div>
-  <div class="screen" id="screen">~ tuning ~</div>
+  <div class="screen" id="screen">
+    <canvas class="staticCanvas" id="staticCanvas"></canvas>
+    <canvas class="whisperCanvas" id="whisperCanvas"></canvas>
+    <div class="scanline"></div>
+    <div id="text">~ tuning ~</div>
+  </div>
   <div class="dial" id="dial">
     <div class="pointer" id="pointer"></div>
   </div>
 
 <script>
-// ---------------- AUDIO SETUP ----------------
+// ---- Audio Setup ----
 const sounds = {
   static: new Audio('sounds/static.mp3'),
   click: new Audio('sounds/click.mp3'),
@@ -129,199 +140,128 @@ const sounds = {
   bgm: new Audio('sounds/background.mp3')
 };
 
-// base config
 sounds.hum.loop = true;
-sounds.hum.volume = 0.15;
-sounds.hum.playbackRate = 1;
-
 sounds.bgm.loop = true;
-sounds.bgm.volume = 0.2;
-sounds.bgm.playbackRate = 1;
+sounds.hum.volume = 0.2;
+sounds.bgm.volume = 0.25;
 
-// allow playback after gesture
-document.addEventListener('click', () => {
-  [sounds.hum, sounds.bgm].forEach(s => {
-    if (s.paused) s.play().catch(()=>{});
-  });
+// Start background hum/music
+window.addEventListener('click', () => {
+  sounds.hum.play();
+  sounds.bgm.play();
 }, { once: true });
 
-// ---------------- ELEMENTS ----------------
+// ---- DOM References ----
 const screen = document.getElementById('screen');
+const textEl = document.getElementById('text');
 const dial = document.getElementById('dial');
 const pointer = document.getElementById('pointer');
+const staticCanvas = document.getElementById('staticCanvas');
+const ctx = staticCanvas.getContext('2d');
 
-let currentAngle = 0;
-let dragging = false;
-let lastAngle = 0;
-let lastChannel = -1;
-
-// ---------------- CHANNELS ----------------
-const channels = [
-  { name: "Goblin Frequencies", generator: goblinPrompt },
-  { name: "Dream Residue", generator: dreamPrompt },
-  { name: "Mortal Mashups", generator: mashupPrompt },
-  { name: "Haunted Folklore", generator: folklorePrompt },
-  { name: "Void Noise", generator: voidPrompt }
-];
-
-// ---------------- PROMPT GENERATORS ----------------
-function goblinPrompt() {
-  const g=["Grib","Snort","Mog","Kreeg","Thistle","Fungrot"],
-        a=["ate","bargained with","stole from","sang to","was cursed by"],
-        o=["a glowing rat","the moon's toenail","a bucket of screams","a noble sock"];
-  return `${rand(g)} ${rand(a)} ${rand(o)}.`;
-}
-
-function dreamPrompt() {
-  const roles = ["Frog","Elephant","Boar","Raven","Giraffe","Tapir","Weasel","Otter","Beaver","Buffalo","Cow","Spider","Rabbit","Dog","Dinosaur","Octopus","Penguin","Crab","Cat","Bear","Lion","Badgers","Xenomorph","Android","Shark","Unicorn","Shrimp","Raccoon","Turtle","Rat","Pony","Tiger","Ant","Bat","Koala","Sloth","Dragon","Chinchilla","Skeleton","Pigeon","Lobster","Walrus","Armadillo","Chicken","Goblin","Mermaid","Centaur","Werewolf","Vampire Bat","Gnome","Fairy","Alien Blob","Robot Dog","Mutant Hamster","Zombie Cat","Cyborg Chicken","Mini Dragon","Space Slug","Tentacle Monster","Flying Fish","Talking Donkey","Living Rock","A Painting of a","Haunted Doll","Giant Rat","Fire Sprite","Ice Golem","Shadow Beast","Moon Rabbit","Pumpkin Monster","Cosmic Owl","Time Traveler","Ghost Parrot","Invisible Cat","Frost Troll","Sand Worm","Giant Spider","Banana Knight","Chocolate Ogre","Cheese Dragon","Sock Monster","Killer Whale","Fox","Neon Tiger","Gummy Bear","Jellyfish","Vortex Frog","Crazy Chicken"];
-  const subjects = ["Knight","Wizard","Healer","Archer","Bard","Thief","Necromancer","Paladin","Barbarian","Alchemist","Engineer","Inventor","Pilot","Captain","Admiral","Navigator","Spy","Assassin","Scout","Soldier","General","Guard","Jester","King","Queen","Prince","Princess","Peasant","Farmer","Blacksmith","Miner","Merchant","Scholar","Librarian","Teacher","Student","Priest","Monk","Oracle","Prophet","Shaman","Druid","Hunter","Fisherman","Cook","Butcher","Baker","Brewer","Innkeeper","Explorer","Cartographer","Sailor","Pirate","Smuggler","Outlaw","Sheriff","Deputy","Detective","Investigator","Doctor","Surgeon","Nurse","Witch Doctor","Mechanic","Taxi Driver","Racer","Athlete","Gladiator","Champion","Wrestler","Boxer","Samurai","Ronin","Ninja","Sensei","Mentor","Apprentice","Magician","Illusionist","Fortune Teller","Trickster","Hero","Villain","Antihero","Rebel","Revolutionary","Diplomat","Ambassador","Politician","Judge","Lawyer","Banker","Thug","Crime Boss","Cult Leader","Prophet of Doom","Herald","Courier","Wanderer","Hermit","Nomad","Survivor","Scientist","Astronaut","Alien","Robot","Hacker","AI Core","Space Marine","Influencer","Starship Captain","Time Traveler","Historian","Archivist","Storyteller","Painter","Musician","Sculptor","Poet","Philosopher","Dreamer","Visionary","Madman","Trickster God","Demi-God","Spirit Guardian","Elemental","Shape-shifter","CEO","Zombie","Vampire","Muppet","Sock Puppet","Kaiju","Transforming","Hippy","Crusty"];
-  const actions = ["dancing","sleeping","baking cupcakes","juggling","painting","singing","fighting","building a Lego set","haunting","surfing","moonwalking","shopping","arguing","reading","working","driving a golf cart","climbing","eating cheese","solving a mystery","being disgusted","poisoned","slaying","pumping iron","playing the bassoon","having a tea party","competing in a staring match","raising money","presenting their ideas","speed dating","performing a musical","wearing tiny trousers","sharing a dessert","dying","laughing","serving drinks","cutting hair","playing football","playing soccer","bringing the ruckus","comparing hats","playing pinball","checking the goods","fishing","wearing a jacket made of cheese","carving wooden spoons","making a secret deal","eating pizza","riding a T-Rex","participating in a hotdog eating contest","casting spells","summoning a storm","building a time machine","hacking a computer","climbing a volcano","riding a giant snail","teleporting","sneaking past guards","playing hide and seek","chasing shadows","taming a dragon","stealing treasure","creating a potion","swinging on vines","jumping through portals","painting graffiti","singing opera","writing a novel","escaping a maze","inventing gadgets","dancing on rooftops","riding a comet","dueling with swords","feeding unicorns","swimming with sharks","riding a mechanical horse","playing pranks","solving riddles","baking a magical cake","testing a jetpack","training minions","fighting off zombies","wrangling ghosts","building a cheese fortress","stealing a crown","casting shadow puppets","racing kangaroos","wrestling giant frogs","conducting an orchestra","driving a UFO"];
-  const contexts = ["in the Congo","at a TED convention","in a castle","in a spaceship","on the moon","in a haunted house","in a circus","in a swamp","in a library","in a volcano","in a coffee shop","at a wedding","at a funeral","in a classroom","on a pirate ship","on stage","in a candy store","in a barber shop","at a fashion show","in a pub","at Disney World","in the big city","on set of a movie shoot","at the gym","in hospital","at a saloon","in a cheese factory","off a cliffs edge","in a field battle","in a thrift store","during an earthquake","on a zoom call","during armageddon","in a sewer","on the subway","in hell","at the laundromat","in the middle of traffic","during karaoke night","at a silent disco","in a gladiator arena","at a bus stop","on a cloud","inside a volcano","underwater in Atlantis","on a flying carpet","in a haunted forest","inside a giant pumpkin","at a zombie apocalypse","during a snowstorm","on a rollercoaster","in a neon city","inside a video game","on a space station","in a cave of crystals","on a pirate island","during a magic duel","in a labyrinth","on a tropical island","in a candy factory","at a wizard school","in a secret laboratory","on a comet","in a junkyard","on a train to nowhere","inside a giant robot","on top of a giant cake","in a miniature village","during a monster invasion","inside a snow globe","on the set of a reality show","in a haunted carnival","inside a magical mirror","at a superhero battle","in a library of forbidden books","under the city streets","on a mountaintop temple","inside a giant clock","in a dimension of upside-down physics","on a floating island","in a circus of illusions","at the edge of time"];
-  return `${rand(roles)} ${rand(subjects)} ${rand(actions)} ${rand(contexts)}.`;
-}
-
-function mashupPrompt() {
-  const r=["Knight","DJ","Goblin","Astrologer","Beekeeper"],
-        s=["Vampire","Robot","Chef","Detective","Witch"],
-        p=["in Space","in a Dungeon","at a Tea Party","during Apocalypse","underwater"];
-  return `${rand(r)} vs ${rand(s)} ${rand(p)}.`;
-}
-
-function folklorePrompt() {
-  const b=["The Hollow Piper","The Candle Mare","The Mirror Child","The Bleeding Oak"],
-        p=["walks when no one watches","sings through keyholes","feeds on reflected light","collects forgotten birthdays"];
-  return `${rand(b)} ${rand(p)}.`;
-}
-
-function voidPrompt() {
-  const n=["⧫ ░ø∆Ψ∴ whispers ∵ Ψ∆ø░ ⧫","The void hums, slightly off-key.","Untranslatable frequencies detected..."];
-  return rand(n);
-}
-
-function rand(a){return a[Math.floor(Math.random()*a.length)];}
-
-// ---------------- DIAL INTERACTION ----------------
-function angleFromEvent(e){
-  const rect=dial.getBoundingClientRect();
-  const cx=rect.left+rect.width/2;
-  const cy=rect.top+rect.height/2;
-  const dx=(e.touches?e.touches[0].clientX:e.clientX)-cx;
-  const dy=(e.touches?e.touches[0].clientY:e.clientY)-cy;
-  return Math.atan2(dy,dx)*180/Math.PI;
-}
-
-dial.addEventListener('mousedown',startDrag);
-dial.addEventListener('touchstart',startDrag);
-document.addEventListener('mouseup',stopDrag);
-document.addEventListener('touchend',stopDrag);
-document.addEventListener('mousemove',dragMove);
-document.addEventListener('touchmove',dragMove);
-
-function startDrag(e){
-  dragging=true;
-  lastAngle=angleFromEvent(e);
-  dial.style.cursor='grabbing';
-  sounds.click.play().catch(()=>{});
-  sounds.static.currentTime=0;
-  sounds.static.volume=0.4;
-  sounds.static.loop=true;
-  sounds.static.play().catch(()=>{});
-}
-
-function stopDrag(){
-  dragging=false;
-  dial.style.cursor='grab';
-  sounds.static.pause();
-
-  // smoothly reset hum and bgm to normal
-  smoothReset();
-}
-
-function dragMove(e){
-  if(!dragging)return;
-  const newAngle=angleFromEvent(e);
-  const delta=newAngle-lastAngle;
-  currentAngle=(currentAngle+delta)%360;
-  lastAngle=newAngle;
-  pointer.style.transform=`rotate(${currentAngle}deg)`;
-  checkChannel();
-  
-  // detune sound subtly
-  const drift = Math.sin(Date.now()/200) * 0.05;
-  const detune = 1 + (delta/90) + drift;
-  sounds.hum.playbackRate = clamp(detune, 0.8, 1.2);
-  sounds.bgm.playbackRate = clamp(detune, 0.85, 1.15);
-  sounds.hum.volume = clamp(0.15 + Math.abs(delta/200), 0.1, 0.3);
-  sounds.bgm.volume = clamp(0.18 + Math.abs(delta/300), 0.1, 0.25);
-}
-
-function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
-
-function smoothReset(){
-  const duration = 600;
-  const startHum = sounds.hum.playbackRate;
-  const startBgm = sounds.bgm.playbackRate;
-  const startTime = Date.now();
-  const fade = setInterval(()=>{
-    const t=(Date.now()-startTime)/duration;
-    if(t>=1){
-      sounds.hum.playbackRate=1;
-      sounds.bgm.playbackRate=1;
-      sounds.hum.volume=0.15;
-      sounds.bgm.volume=0.2;
-      clearInterval(fade);
-    } else {
-      sounds.hum.playbackRate = startHum + (1 - startHum)*t;
-      sounds.bgm.playbackRate = startBgm + (1 - startBgm)*t;
-    }
-  },30);
-}
-
-function checkChannel(){
-  const segmentSize=360/channels.length;
-  let channelIndex=Math.floor((currentAngle+360)%360/segmentSize);
-  if(channelIndex!==lastChannel){
-    lastChannel=channelIndex;
-    const channel=channels[channelIndex];
-    showStatic(channel.name);
-    setTimeout(()=>displayPhrase(channel.generator()),600);
+// ---- Static Noise ----
+function drawStatic() {
+  const w = staticCanvas.width = staticCanvas.offsetWidth;
+  const h = staticCanvas.height = staticCanvas.offsetHeight;
+  const imageData = ctx.createImageData(w, h);
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    const v = Math.random() * 255;
+    imageData.data[i] = imageData.data[i + 1] = imageData.data[i + 2] = v;
+    imageData.data[i + 3] = Math.random() < 0.9 ? 40 : 90;
   }
+  ctx.putImageData(imageData, 0, 0);
+}
+let staticActive = true;
+function animateStatic() {
+  if (staticActive) drawStatic();
+  requestAnimationFrame(animateStatic);
+}
+animateStatic();
+
+// ---- Dream Residue Data ----
+const dreamResidue = {
+  roles: ["Frog","Elephant","Boar","Raven","Giraffe","Tapir","Weasel","Otter","Beaver","Buffalo","Cow","Spider","Rabbit","Dog","Dinosaur","Octopus","Penguin","Crab","Cat","Bear","Lion","Badgers","Xenomorph","Android","Shark","Unicorn","Shrimp","Raccoon","Turtle","Rat","Pony","Tiger","Ant","Bat","Koala","Sloth","Dragon","Chinchilla","Skeleton","Pigeon","Lobster","Walrus","Armadillo","Chicken","Goblin","Mermaid","Centaur","Werewolf","Vampire Bat","Gnome","Fairy","Alien Blob","Robot Dog","Mutant Hamster","Zombie Cat","Cyborg Chicken","Mini Dragon","Space Slug","Tentacle Monster","Flying Fish","Talking Donkey","Living Rock","A Painting of a","Haunted Doll","Giant Rat","Fire Sprite","Ice Golem","Shadow Beast","Moon Rabbit","Pumpkin Monster","Cosmic Owl","Time Traveler","Ghost Parrot","Invisible Cat","Frost Troll","Sand Worm","Banana Knight","Chocolate Ogre","Cheese Dragon","Sock Monster","Killer Whale","Fox","Neon Tiger","Gummy Bear","Jellyfish","Vortex Frog","Crazy Chicken"],
+  subjects: ["Knight","Wizard","Healer","Archer","Bard","Thief","Necromancer","Paladin","Barbarian","Alchemist","Engineer","Inventor","Pilot","Captain","Admiral","Navigator","Spy","Assassin","Scout","Soldier","General","Guard","Jester","King","Queen","Prince","Princess","Peasant","Farmer","Blacksmith","Miner","Merchant","Scholar","Librarian","Teacher","Student","Priest","Monk","Oracle","Prophet","Shaman","Druid","Hunter","Fisherman","Cook","Butcher","Baker","Brewer","Innkeeper","Explorer","Cartographer","Sailor","Pirate","Smuggler","Outlaw","Sheriff","Detective","Investigator","Doctor","Surgeon","Nurse","Witch Doctor","Mechanic","Taxi Driver","Racer","Athlete","Gladiator","Champion","Wrestler","Boxer","Samurai","Ronin","Ninja","Sensei","Mentor","Apprentice","Magician","Illusionist","Fortune Teller","Trickster","Hero","Villain","Antihero","Rebel","Revolutionary","Diplomat","Ambassador","Politician","Judge","Lawyer","Banker","Thug","Crime Boss","Cult Leader","Prophet of Doom","Herald","Delivery","Courier","Wanderer","Hermit","Nomad","Survivor","Scientist","Astronaut","Alien","Robot","Hacker","AI Core","Space Marine","Influencer","Starship Captain","Time Traveler","Historian","Archivist","Storyteller","Painter","Musician","Sculptor","Poet","Philosopher","Dreamer","Visionary","Madman","Trickster God","Demi-God","Spirit Guardian","Elemental","Shape-shifter","CEO","Zombie","Vampire","Muppet","Sock Puppet","Kaiju","Transforming","Hippy","Crusty"],
+  actions: ["dancing","sleeping","baking cupcakes","juggling","painting","singing","fighting","building a Lego set","haunting","surfing","moonwalking","shopping","arguing","reading","working","driving a golf cart","climbing","eating cheese","solving a mystery","being disgusted","slaying","playing football","competing in a staring match","performing a musical","wearing tiny trousers","sharing a dessert","serving drinks","playing pinball","fishing","carving wooden spoons","eating pizza","riding a T-Rex","casting spells","building a time machine","climbing a volcano","teleporting","taming a dragon","stealing treasure","creating a potion","swinging on vines","jumping through portals","painting graffiti","singing opera","writing a novel","escaping a maze","riding a comet","dueling with swords","feeding unicorns","swimming with sharks","playing pranks","solving riddles","baking a magical cake","testing a jetpack","training minions","fighting off zombies","wrangling ghosts","building a cheese fortress","stealing a crown","casting shadow puppets","racing kangaroos","wrestling giant frogs","conducting an orchestra","driving a UFO"],
+  contexts: ["in the Congo","at a TED convention","in a castle","in a spaceship","on the moon","in a haunted house","in a circus","in a swamp","in a library","in a volcano","in a coffee shop","at a wedding","at a funeral","in a classroom","on a pirate ship","on stage","in a candy store","in a barber shop","at a fashion show","in a pub","at Disney World","in the big city","on a zoom call","during armageddon","in a sewer","on the subway","in hell","in the middle of traffic","at a silent disco","in a gladiator arena","underwater in Atlantis","on a floating island","at the edge of time"]
+};
+
+// ---- Prompt Generators ----
+function dreamPrompt() {
+  const r = rand(dreamResidue.roles);
+  const s = rand(dreamResidue.subjects);
+  const a = rand(dreamResidue.actions);
+  const c = rand(dreamResidue.contexts);
+  return `${r} ${s} ${a} ${c}.`;
 }
 
-function showStatic(label){
-  screen.textContent=`~ ${label} ~`;
-  screen.classList.add('static');
-  setTimeout(()=>screen.classList.remove('static'),400);
-  sounds.static.currentTime=0;
-  sounds.static.play().catch(()=>{});
+function rand(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+// ---- Dial Interaction ----
+let currentAngle = 0, dragging = false, lastAngle = 0;
+dial.addEventListener('mousedown', e => {
+  dragging = true;
+  lastAngle = angleFromEvent(e);
+  dial.style.cursor = 'grabbing';
+  sounds.click.play();
+  staticActive = true;
+  fadeVolume(sounds.static, 0.3, 200);
+  sounds.static.play();
+});
+document.addEventListener('mouseup', () => {
+  dragging = false;
+  dial.style.cursor = 'grab';
+  fadeVolume(sounds.static, 0, 500);
+});
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const newAngle = angleFromEvent(e);
+  const delta = newAngle - lastAngle;
+  currentAngle = (currentAngle + delta) % 360;
+  lastAngle = newAngle;
+  pointer.style.transform = `rotate(${currentAngle}deg)`;
+  if (!sounds.static.paused) sounds.static.currentTime = 0;
+  showStatic("~ Dream Residue ~");
+  setTimeout(() => displayPhrase(dreamPrompt()), 1000);
+});
+function angleFromEvent(e) {
+  const rect = dial.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const dx = e.clientX - cx;
+  const dy = e.clientY - cy;
+  return Math.atan2(dy, dx) * 180 / Math.PI;
 }
 
-function displayPhrase(text){
-  screen.innerHTML="";
-  const span=document.createElement('span');
-  span.textContent=text;
-  span.classList.add('assembled');
-  screen.appendChild(span);
-
-  fadeVolume(sounds.bgm, 0.1, 500);
-  
-  setTimeout(()=>{
-    span.classList.remove('fade-out');
-    sounds.static.pause();
-    sounds.lock.currentTime=0;
-    sounds.lock.play().catch(()=>{});
-    sounds.blip.currentTime=0;
-    sounds.blip.play().catch(()=>{});
-  },300);
+// ---- Screen Display ----
+function showStatic(label) {
+  textEl.textContent = label;
+  textEl.classList.add('static');
+  setTimeout(() => textEl.classList.remove('static'), 400);
+}
+function displayPhrase(text) {
+  staticActive = false;
+  ctx.clearRect(0, 0, staticCanvas.width, staticCanvas.height);
+  textEl.innerHTML = "";
+  const container = document.createElement('div');
+  container.className = 'assembled';
+  for (const ch of text) {
+    const span = document.createElement('span');
+    span.textContent = ch;
+    span.style.animationDelay = (Math.random() * 0.8) + 's';
+    container.appendChild(span);
+  }
+  textEl.appendChild(container);
 }
 
-function fadeVolume(sound, target, duration){
+// ---- Audio Fade Utility ----
+function fadeVolume(sound, target, duration) {
   const start = sound.volume;
   const startTime = Date.now();
-  const step = setInterval(()=>{
-    const t = Math.min(1, (Date.now()-startTime)/duration);
-    sound.volume = start + (target-start)*t;
-    if(t===1) clearInterval(step);
+  const step = setInterval(() => {
+    const t = Math.min(1, (Date.now() - startTime) / duration);
+    sound.volume = start + (target - start) * t;
+    if (t === 1) clearInterval(step);
   }, 30);
 }
 </script>
