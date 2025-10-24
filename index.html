@@ -414,9 +414,57 @@ muteButton.addEventListener('click', () => {
   bgMusic.muted = isMuted;
   muteButton.textContent = isMuted ? 'Unmute' : 'Mute';
 });
+<!-- Dial Sound FX -->
+<script>
+const dialSound = new Audio('sounds/radioscrolling.mp3');
+dialSound.loop = true;
+dialSound.volume = 0.5; // adjust starting volume if needed
+
+let dialDragging = false;
+let fadeOutInterval = null;
+
+// Override existing drag events to control sound
+const originalStartDrag = startDrag;
+const originalEndDrag = endDrag;
+
+function fadeOutAudio(audio, duration = 300) {
+  const step = 50;
+  const volumeStep = audio.volume / (duration / step);
+  clearInterval(fadeOutInterval);
+  fadeOutInterval = setInterval(() => {
+    if (audio.volume - volumeStep > 0) {
+      audio.volume -= volumeStep;
+    } else {
+      audio.volume = 0;
+      audio.pause();
+      clearInterval(fadeOutInterval);
+      audio.volume = 0.5; // reset default for next time
+    }
+  }, step);
+}
+
+startDrag = function(e) {
+  originalStartDrag(e);
+  if (!isMuted) {
+    dialSound.volume = 0.5;
+    dialSound.currentTime = 0;
+    dialSound.play().catch(()=>{}); // catch mobile autoplay restrictions
+  }
+};
+
+endDrag = function() {
+  originalEndDrag();
+  fadeOutAudio(dialSound, 300);
+};
+
+// Also mute dialSound when the mute button is toggled
+muteButton.addEventListener('click', () => {
+  dialSound.muted = isMuted;
+});
 </script>
 </body>
 </html>
+
 
 
 
