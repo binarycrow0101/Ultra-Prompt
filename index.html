@@ -211,13 +211,13 @@ const promptData = {
     },
     template: (p) => rand(p.nonsense)
   },
-  "Bird of the Day": {
+  "Avian Frequency": {
     parts: {
       birds: [
         "Robin","Blue Tit","Great Tit","Chaffinch","Goldfinch","Greenfinch","House Sparrow","Song Thrush","Blackbird","Wren","Dunnock","Long-tailed Tit","Coal Tit","Treecreeper","Nuthatch","Magpie","Jackdaw","Rook","Carrion Crow","Woodpigeon","Collared Dove","Herring Gull","Lesser Black-backed Gull","Great Black-backed Gull","Kestrel","Sparrowhawk","Buzzard","Oystercatcher","Lapwing","Curlew","Redshank","Snipe","Grey Heron","Kingfisher","Woodcock","Swallow","House Martin","Swift","Peregrine Falcon","Tawny Owl","Barn Owl","Little Owl","Goldcrest","Firecrest","Redstart","Whinchat","Stonechat","Wheatear","Yellow Wagtail","Grey Wagtail","Pied Wagtail","Meadow Pipit","Tree Pipit","Chiffchaff","Willow Warbler","Blackcap","Garden Warbler","Whitethroat","Lesser Whitethroat","Grasshopper Warbler","Sedge Warbler","Reed Warbler","Cetti's Warbler","Sparrowhawk"
       ]
     },
-    template: (p) => `Today's bird is a ${rand(p.birds)}.`
+    template: (p) => `Signal is detecting a ${rand(p.birds)}.`
   },
   "Automaton Murmurs": {
   parts: {
@@ -386,4 +386,5 @@ setTimeout(()=>displayPhrase('~ tuning ~'),300);
 </script>
 </body>
 </html>
+
 
