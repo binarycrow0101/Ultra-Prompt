@@ -175,9 +175,9 @@
 const promptData = {
   "Goblin Frequencies": {
     parts: {
-      goblins: ["Grib", "Snort", "Mog", "Kreeg", "Thistle", "Fungrot", "Stanky", "Frink", "Glob"],
-      actions: ["ate", "bargained with", "stole from", "sang to", "was cursed by", "casting spells on","forging weapons with","summoning something horrific with","fighting","exploring","guarding treasure of","courting","chewing on"],
-      objects: ["a glowing rat", "a Giants toenail", "a bucket of screams", "a noble sock", "a heap of bones", "a bag of teeth", "in a bog of cheese"]
+      goblins: ["Grib","Snort","Mog","Kreeg","Thistle","Fungrot","Stanky","Frink","Glob"],
+      actions: ["ate","bargained with","stole from","sang to","was cursed by","casting spells on","forging weapons with","summoning something horrific with","fighting","exploring","guarding treasure of","courting","chewing on"],
+      objects: ["a glowing rat","a Giants toenail","a bucket of screams","a noble sock","a heap of bones","a bag of teeth","in a bog of cheese"]
     },
     template: (p) => `${rand(p.goblins)} ${rand(p.actions)} ${rand(p.objects)}.`
   },
@@ -188,11 +188,8 @@ const promptData = {
       actions: ["dancing","sleeping","baking cupcakes","juggling","painting","singing","fighting","building a Lego set","haunting","surfing","moonwalking","shopping","arguing","reading","working","driving a golf cart","climbing","eating cheese","solving a mystery","being disgusted","poisoned","slaying","pumping iron","playing the bassoon","having a tea party","competing in a staring match","raising money","presenting their ideas","speed dating","performing a musical","wearing tiny trousers","sharing a dessert","dying","laughing","serving drinks","cutting hair","playing football","playing soccer","bringing the ruckus","comparing hats","playing pinball","checking the goods","fishing","wearing a jacket made of cheese","carving wooden spoons","making a secret deal","eating pizza","riding a T-Rex","participating in a hotdog eating contest","casting spells","summoning a storm","building a time machine","hacking a computer","climbing a volcano","riding a giant snail","teleporting","sneaking past guards","playing hide and seek","chasing shadows","taming a dragon","stealing treasure","creating a potion","swinging on vines","jumping through portals","painting graffiti","singing opera","writing a novel","escaping a maze","inventing gadgets","dancing on rooftops","riding a comet","dueling with swords","feeding unicorns","swimming with sharks","riding a mechanical horse","playing pranks","solving riddles","baking a magical cake","testing a jetpack","training minions","fighting off zombies","wrangling ghosts","building a cheese fortress","stealing a crown","casting shadow puppets","racing kangaroos","wrestling giant frogs","conducting an orchestra","driving a UFO"],
       contexts: ["in the Congo","at a TED convention","in a castle","in a spaceship","on the moon","in a haunted house","in a circus","in a swamp","in a library","in a volcano","in a coffee shop","at a wedding","at a funeral","in a classroom","on a pirate ship","on stage","in a candy store","in a barber shop","at a fashion show","in a pub","at Disney World","in the big city","on set of a movie shoot","at the gym","in hospital","at a saloon","in a cheese factory","off a cliffs edge","in a field battle","in a thrift store","during an earthquake","on a zoom call","during armageddon","in a sewer","on the subway","in hell","at the laundromat","in the middle of traffic","during karaoke night","at a silent disco","in a gladiator arena","at a bus stop","on a cloud","inside a volcano","underwater in Atlantis","on a flying carpet","in a haunted forest","inside a giant pumpkin","at a zombie apocalypse","during a snowstorm","on a rollercoaster","in a neon city","inside a video game","on a space station","in a cave of crystals","on a pirate island","during a magic duel","in a labyrinth","on a tropical island","in a candy factory","at a wizard school","in a secret laboratory","on a comet","in a junkyard","on a train to nowhere","inside a giant robot","on top of a giant cake","in a miniature village","during a monster invasion","inside a snow globe","on the set of a reality show","in a haunted carnival","inside a magical mirror","at a superhero battle","in a library of forbidden books","under the city streets","on a mountaintop temple","inside a giant clock","in a dimension of upside-down physics","on a floating island","in a circus of illusions","at the edge of time"]
     },
-  template: (p) => {
-    return `You dreamt of a ${rand(p.roles)} ${rand(p.subjects)} ${rand(p.actions)} ${rand(p.contexts)}.`;
-  }
-},
-
+    template: (p) => `You dreamt of a ${rand(p.roles)} ${rand(p.subjects)} ${rand(p.actions)} ${rand(p.contexts)}.`
+  },
   "Mortal Mashups": {
     parts: {
       roles: ["Knight","DJ","Goblin","Astrologer","Beekeeper"],
@@ -213,8 +210,17 @@ const promptData = {
       nonsense: ["⧫ ░ø∆Ψ∴ whispers ∵ Ψ∆ø░ ⧫","The void hums, slightly off-key.","Untranslatable frequencies detected..."]
     },
     template: (p) => rand(p.nonsense)
+  },
+  "Bird of the Day": {
+    parts: {
+      birds: [
+        "Robin","Blue Tit","Great Tit","Chaffinch","Goldfinch","Greenfinch","House Sparrow","Song Thrush","Blackbird","Wren","Dunnock","Long-tailed Tit","Coal Tit","Treecreeper","Nuthatch","Magpie","Jackdaw","Rook","Carrion Crow","Woodpigeon","Collared Dove","Herring Gull","Lesser Black-backed Gull","Great Black-backed Gull","Kestrel","Sparrowhawk","Buzzard","Oystercatcher","Lapwing","Curlew","Redshank","Snipe","Grey Heron","Kingfisher","Woodcock","Swallow","House Martin","Swift","Peregrine Falcon","Tawny Owl","Barn Owl","Little Owl","Goldcrest","Firecrest","Redstart","Whinchat","Stonechat","Wheatear","Yellow Wagtail","Grey Wagtail","Pied Wagtail","Meadow Pipit","Tree Pipit","Chiffchaff","Willow Warbler","Blackcap","Garden Warbler","Whitethroat","Lesser Whitethroat","Grasshopper Warbler","Sedge Warbler","Reed Warbler","Cetti's Warbler","Sparrowhawk"
+      ]
+    },
+    template: (p) => `Today's bird is a ${rand(p.birds)}.`
   }
 };
+
 function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function generatePrompt(channelName){
   const data = promptData[channelName];
@@ -341,7 +347,6 @@ function displayPhrase(text){
   const totalDuration=indices.length*baseDelay+400;
   setTimeout(()=>{
     fadeOutStatic();
-    // Subtle glow settle
     container.animate([
       { textShadow:'0 0 4px rgba(0,255,255,0.1)' },
       { textShadow:'0 0 12px rgba(0,255,255,0.4)' },
@@ -349,7 +354,6 @@ function displayPhrase(text){
     ],{duration:2000,easing:'ease-in-out'});
   },totalDuration);
 
-  // gentler random flicker
   const flickerLoop=()=>{
     if(Math.random()<0.25){
       const j=Math.floor(Math.random()*chars.length);
@@ -374,5 +378,3 @@ setTimeout(()=>displayPhrase('~ tuning ~'),300);
 </script>
 </body>
 </html>
-
-
