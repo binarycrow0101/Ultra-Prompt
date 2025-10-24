@@ -218,7 +218,15 @@ const promptData = {
       ]
     },
     template: (p) => `Today's bird is a ${rand(p.birds)}.`
-  }
+  },
+  "Automaton Murmurs": {
+  parts: {
+    robots: ["Robo", "Clank", "Servo", "Gearbit", "Tinny", "Botley", "Cogsworth", "Mecha", "Z3X"],
+    actions: ["dances", "sings lullabies", "paints abstract art", "juggles bolts", "stirs a cauldron", "solves riddles", "explores mazes", "practices yoga", "writes poetry", "spins in circles"],
+    locations: ["in a neon lab", "on a floating platform", "inside a scrapyard", "on a cloud of mist", "in a giant clock", "beneath the void", "on a holographic stage", "in a factory of whispers"]
+  },
+  template: (p) => `${rand(p.robots)} ${rand(p.actions)} ${rand(p.locations)}.`
+}
 };
 
 function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
@@ -378,3 +386,4 @@ setTimeout(()=>displayPhrase('~ tuning ~'),300);
 </script>
 </body>
 </html>
+
