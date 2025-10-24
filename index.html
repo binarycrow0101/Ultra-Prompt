@@ -384,7 +384,39 @@ window.addEventListener('orientationchange',()=>{clearTimeout(window._resizeTime
 initStatic();
 setTimeout(()=>displayPhrase('~ tuning ~'),300);
 </script>
+<!-- Background Music and Mute Button -->
+<audio id="bgMusic" src="sounds/background.mp3" loop autoplay></audio>
+
+<button id="muteButton" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0,255,255,0.2);
+  border: 1px solid #0ff;
+  color: #0ff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: monospace;
+  z-index: 1000;
+">Mute</button>
+
+<script>
+  
+const bgMusic = document.getElementById('bgMusic');
+const muteButton = document.getElementById('muteButton');
+
+let isMuted = false;
+
+// Handle mute/unmute
+muteButton.addEventListener('click', () => {
+  isMuted = !isMuted;
+  bgMusic.muted = isMuted;
+  muteButton.textContent = isMuted ? 'Unmute' : 'Mute';
+});
+</script>
 </body>
 </html>
+
 
 
